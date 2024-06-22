@@ -1,0 +1,9 @@
+
+.PrimaryArticleThumbnail {
+  transition: background-color 0.2s;
+}
+
+.PrimaryArticleThumbnail:hover {
+  background-color: theme.palette.action.hover;
+  cursor: pointer;
+}
