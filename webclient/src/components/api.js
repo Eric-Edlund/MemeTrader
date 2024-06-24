@@ -58,7 +58,13 @@ export async function getSearchResults(inputValue) {
 
 export async function getUserInfo(userId) {
   const response = await retrying(() =>
-    fetch(`${API_URL}/v1/user`, { credentials: "include" }),
+    fetch(`${API_URL}/v1/user`, {
+      credentials: "include",
+
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    }),
   );
   return await response.json();
 }
@@ -67,7 +73,11 @@ export async function setUserBio(newBio) {
   const response = await retrying(() =>
     fetch(`${API_URL}/v1/user/description`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+
+        "X-Requested-With": "XMLHttpRequest",
+      },
       body: JSON.stringify({ newBio }),
       credentials: "include",
     }),
@@ -76,14 +86,27 @@ export async function setUserBio(newBio) {
 }
 
 export async function getHoldings() {
-  const response = await retrying(() => fetch(`${API_URL}/v1/user/holdings`, {
-    credentials: "include",
-  }));
+  const response = await retrying(() =>
+    fetch(`${API_URL}/v1/user/holdings`, {
+      credentials: "include",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    }),
+  );
   return await response.json();
 }
 
 export async function getBalance() {
-  const response = await retrying(() => fetch(`${API_URL}/v1/user/balance`, { credentials: 'include' }));
+  const response = await retrying(() =>
+    fetch(`${API_URL}/v1/user/balance`, {
+      credentials: "include",
+
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    }),
+  );
   return await response.json();
 }
 

@@ -29,7 +29,8 @@ import ThemeToggler from "./components/ThemeToggler";
 export const globalState = {};
 
 function NavigationBar() {
-  const { user, authenticated } = useContext(ApplicationContext);
+  const { user, authenticated, triggerRecheckLogin } =
+    useContext(ApplicationContext);
 
   return (
     <AppBar style={{ position: "sticky" }}>
@@ -56,21 +57,38 @@ function NavigationBar() {
         {authenticated ? (
           <a
             onMouseDownCapture={() => {
-              fetch("/logout", {
+              fetch(`${API_URL}/logout`, {
                 method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
+                // headers: {
+                //   "Content-Type": "application/json",
+                //   "X-Requested-With": "XMLHttpRequest",
+                // },
+                credentials: 'include',
               })
-                .then((response) => response.json())
-                .then((data) => console.log(data))
-                .catch((error) => console.error(error));
+                .then((response) => console.log("Logged out: " + response.ok))
+                .catch((error) => console.error(error))
+              .finally(triggerRecheckLogin)
             }}
           >
             {user.userName}
           </a>
         ) : (
-          <a onClick={() => (window.location.href = `${API_URL}/login`)}>
+          <a
+            onClick={() => {
+              fetch(`${API_URL}/user`, {
+                method: "GET",
+                headers: {
+                  Authorization:
+                    "Basic " +
+                    btoa(loginData.username + ":" + loginData.password),
+                },
+                  credentials: 'include'
+              }).then((response) => {
+                console.log(response.ok);
+                if (response.ok) triggerRecheckLogin();
+              });
+            }}
+          >
             Log in
           </a>
         )}
@@ -96,15 +114,6 @@ function App() {
 
   const [connected, setConnected] = useState(true); // To the internet/server
   const [reconnected, triggerReconnected] = useReducer((a) => a + 1, 0);
-
-  useEffect(() => {
-    async function checkLogin() {
-      const loggedIn = await (await fetch(`${API_URL}/authenticated`)).json();
-      console.log("Logged in response: " + loggedIn);
-      setAuthenticated(loggedIn);
-    }
-    checkLogin();
-  }, []);
 
   globalState.connected = connected;
   globalState.setConnected = setConnected;
@@ -145,28 +154,30 @@ export default App;
 
 const loginData = {
   username: "ericedlund2017@gmail.com",
-  password: "1234",
+  password: "password",
 };
 
-fetch(`${API_URL}/login`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/x-www-form-urlencoded",
-  },
-  body: new URLSearchParams(loginData),
-})
-  .then(async (response) => {
-    if (response.ok) {
-      // Login successful
-      console.log("Login successful");
-      console.log(await response.text());
-    } else {
-      // Login failed
-      console.log("Login failed");
-      console.log(response.statusText);
-      console.log(await response.text());
-    }
-  })
-  .catch((error) => {
-    console.error("Error:", error);
-  });
+// fetch(`${API_URL}/`, {
+//   method: "POST",
+//   headers: {
+//     "Content-Type": "application/x-www-form-urlencoded",
+//     "Authorization": "Basic username=ericedlund2017@gmail.com password=1234",
+//   },
+//   // credentials: 'include',
+//   body: new URLSearchParams(loginData),
+// })
+//   .then(async (response) => {
+//     if (response.ok) {
+//       // Login successful
+//       console.log("Login successful");
+//       console.log(await response.text());
+//     } else {
+//       // Login failed
+//       console.log("Login failed");
+//       console.log(response.statusText);
+//       console.log(await response.text());
+//     }
+//   })
+//   .catch((error) => {
+//     console.error("Error:", error);
+//   });
