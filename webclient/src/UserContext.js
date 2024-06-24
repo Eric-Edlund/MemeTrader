@@ -94,6 +94,7 @@ const ApplicationStateProvider = ({ children }) => {
         })
         .catch((rej) => {
           console.log("Not logged in");
+          setAuthenticated(false)
         });
     }
     checkLogin();
