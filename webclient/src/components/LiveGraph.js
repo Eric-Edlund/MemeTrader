@@ -50,6 +50,7 @@ const LiveGraph = ({ stockId, reloadTrigger }) => {
         y: {
           beginAtZero: true,
           suggestedMax: 100,
+          min: 0,
           ticks: {
             callback: function (val) {
               return (val / 100).toLocaleString("en-US", {

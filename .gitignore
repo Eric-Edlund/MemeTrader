@@ -3,3 +3,6 @@
 /StockService/uploads/images/cddb54a2-ca86-4288-bcb7-1ddd49165d99.png
 /.direnv/
 /.envrc
+/sql.sql
+/StockService/.envrc
+/StockService/.direnv/

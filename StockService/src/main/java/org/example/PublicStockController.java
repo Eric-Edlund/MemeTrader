@@ -35,7 +35,7 @@ public class PublicStockController {
      * @return The price of the stock or 0 if the stock doesn't exist.
      */
     @GetMapping("/stock/price")
-    public ResponseEntity<Integer> price(@RequestParam("stockId") int stockId) {
+    public ResponseEntity<Long> price(@RequestParam("stockId") int stockId) {
         if (stockId < 1) {
             return ResponseEntity.badRequest().build();
         }

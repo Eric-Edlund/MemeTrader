@@ -2,6 +2,7 @@ package org.example;
 
 import me.xdrop.fuzzywuzzy.FuzzySearch;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +31,9 @@ public class MemeStockService {
      * @param stockId The id of the stock.
      * @return The price of the stock.
      * @throws StockNotFoundException If the stock does not exist.
-     */    public int getPrice(int stockId) {
-        return memeStockRepository.getTotalOwnedShares(stockId) * PRICE_COEF + 1;
+     */
+    public long getPrice(int stockId) {
+        return price(memeStockRepository.getTotalOwnedShares(stockId));
     }
 
     /**
@@ -65,20 +67,49 @@ public class MemeStockService {
      * @param stockId The id of the stock.
      * @param stockOrder The type of order (buy or sell).
      * @param numShares The number of shares to buy or sell.
-     * @param pricePerShare The price per share.
+     * @param totalPrice The price of the order.
+     * @param dryRun If true, don't commit the transaction, just the error if there is one.
      * @return The order number.
-     * @throws PlaceOrderFailed If the order is invalid.
+     * @throws StockOrderException If the order is invalid.
      */
-    public int placeOrder(int userId, int stockId, StockOrder stockOrder, int numShares, int pricePerShare) throws PlaceOrderFailed {
-        // TODO: Check funding
-        // TODO: Update acct balance
+    public int placeOrder(int userId, int stockId, StockOrder stockOrder, long numShares, long totalPrice, boolean dryRun) throws StockOrderException{
+        //TODO: Do we need this check if the database checks ledger updates for us?
         if (stockOrder == StockOrder.Sell && !isSellOrderAllowed(userId, stockId, numShares)) {
-            throw new PlaceOrderFailed("User does not have enough shares to sell");
+            throw new StockOrderException(StockOrderException.Problem.InsufficientHoldings);
         }
-        return memeStockRepository.writeToLedger(userId, stockId, stockOrder, numShares, pricePerShare);
+
+        long currentOwnedShares = memeStockRepository.getTotalOwnedShares(stockId);
+        long correctTotalPrice = transactionPrice(currentOwnedShares, currentOwnedShares + numShares);
+        if (correctTotalPrice != totalPrice) {
+            System.out.println("Expected total price " + (correctTotalPrice) + " got price " + totalPrice);
+            throw new StockOrderException(StockOrderException.Problem.InvalidOrder, correctTotalPrice);
+        }
+
+        return memeStockRepository.writeToLedger(userId, stockId, stockOrder, numShares, totalPrice, dryRun);
     }
 
-    public boolean isSellOrderAllowed(int userId, int stockId, int numShares) {
+    /**
+     * The cost of changing the number of shares owned from a to b.
+     * @param sharesA Number of shares owned before operation.
+     * @param sharesB Number of shares owned after operation.
+     * @return Always positive
+     */
+   private long transactionPrice(long sharesA, long sharesB) {
+        if (sharesA > sharesB) {
+            long tmp = sharesA;
+            sharesA = sharesB;
+            sharesB = tmp;
+        }
+        return (PRICE_COEF * (sharesB - sharesA) * (sharesB - sharesA + 1) / 2)
+                - 6 * (sharesB - sharesA);
+
+    }
+
+    private long price(long numShares) {
+        return numShares * PRICE_COEF + 1;
+    }
+
+    public boolean isSellOrderAllowed(int userId, int stockId, long numShares) {
         try {
             return memeStockRepository.getTotalOwnedSharesByUser(userId, stockId) >= numShares;
         } catch (StockNotFoundException e) {
@@ -112,6 +143,33 @@ public class MemeStockService {
                 .toList();
     }
 
+    public Map<OffsetDateTime, BalanceHoldingsPair> getAccountHistory(OffsetDateTime start, OffsetDateTime end, int userId) {
+        return memeStockRepository.getAccountHistory(start, end, userId).entrySet().stream()
+                .map(entry -> {
+                    final var balance = entry.getValue().balance();
+                    final List<MemeStockRepository.RawHolding> rawHoldings = entry.getValue().holdings();
+                    return Map.entry(entry.getKey(), new BalanceHoldingsPair(
+                            balance,
+                            rawHoldings.stream()
+                                    .map(rawHolding -> new Holding(
+                                            rawHolding.stockId(),
+                                            rawHolding.amtOwned(),
+                                            rawHolding.totalOwned() * PRICE_COEF + 1
+                                    ))
+                                    .toList()
+                    ));
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
 
 
+    public long getTransactionValue(int stockId, String operation, long numShares) {
+        final var currentOwned = memeStockRepository.getTotalOwnedShares(stockId);
+        final var finalOwned = currentOwned + switch (operation) {
+            case "BUY" -> numShares;
+            case "SELL" -> -numShares;
+            default -> throw new IllegalStateException("Unexpected value: " + operation);
+        };
+        return transactionPrice(currentOwned, finalOwned);
+    }
 }

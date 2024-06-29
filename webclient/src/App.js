@@ -7,6 +7,8 @@ import {
   Typography,
   Alert,
   CssBaseline,
+  Button,
+  Box,
 } from "@mui/material";
 import { BrowserRouter, Route, Routes, Link } from "react-router-dom";
 import React, {
@@ -14,7 +16,6 @@ import React, {
   useState,
   useReducer,
   useContext,
-  createContext,
   useMemo,
 } from "react";
 import Search from "./components/Search";
@@ -23,17 +24,19 @@ import HomePage from "./pages/HomePage";
 import { API_URL } from "./constants";
 import AccountPage from "./pages/AccountPage";
 import { ApplicationContext } from "./UserContext";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { createTheme, ThemeProvider, useTheme } from "@mui/material/styles";
 import ThemeToggler from "./components/ThemeToggler";
+import LoginPage from "./pages/LoginPage";
 
 export const globalState = {};
 
 function NavigationBar() {
-  const { user, authenticated, triggerRecheckLogin } =
+  const { user, authenticated, triggerRecheckLogin, setOnLoginPage } =
     useContext(ApplicationContext);
+  const theme = useTheme();
 
   return (
-    <AppBar style={{ position: "sticky" }}>
+    <AppBar position="sticky" sx={{zIndex: theme.zIndex.drawer + 1}}>
       <Toolbar style={{ display: "flex" }}>
         <Link
           style={{ textDecoration: "none", color: "inherit" }}
@@ -59,38 +62,21 @@ function NavigationBar() {
             onMouseDownCapture={() => {
               fetch(`${API_URL}/logout`, {
                 method: "POST",
-                // headers: {
-                //   "Content-Type": "application/json",
-                //   "X-Requested-With": "XMLHttpRequest",
-                // },
-                credentials: 'include',
+                credentials: "include",
               })
                 .then((response) => console.log("Logged out: " + response.ok))
                 .catch((error) => console.error(error))
-              .finally(triggerRecheckLogin)
+                .finally(triggerRecheckLogin);
             }}
           >
             {user.userName}
           </a>
         ) : (
-          <a
-            onClick={() => {
-              fetch(`${API_URL}/user`, {
-                method: "GET",
-                headers: {
-                  Authorization:
-                    "Basic " +
-                    btoa(loginData.username + ":" + loginData.password),
-                },
-                  credentials: 'include'
-              }).then((response) => {
-                console.log(response.ok);
-                if (response.ok) triggerRecheckLogin();
-              });
-            }}
-          >
-            Log in
-          </a>
+          <>
+            <Button onMouseDown={setOnLoginPage}>
+              <Typography color={theme.palette.common.white}>Log in</Typography>
+            </Button>
+          </>
         )}
 
         <ThemeToggler />
@@ -100,7 +86,7 @@ function NavigationBar() {
 }
 
 function App() {
-  const { darkMode, setAuthenticated } = useContext(ApplicationContext);
+  const { darkMode, onLoginPage } = useContext(ApplicationContext);
 
   const theme = useMemo(
     () =>
@@ -126,58 +112,32 @@ function App() {
   }, [connected]);
 
   return (
-    <>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <BrowserRouter>
-          <Snackbar open={!connected}>
-            <Alert severity="error" variant="filled">
-              Unable to connect to server.
-            </Alert>
-          </Snackbar>
 
-          <NavigationBar />
+        {onLoginPage ? (
+          <LoginPage />
+        ) : (
+          <BrowserRouter>
+            <Snackbar open={!connected}>
+              <Alert severity="error" variant="filled">
+                Unable to connect to server.
+              </Alert>
+            </Snackbar>
 
-          <Routes>
-            <Route path="/" Component={HomePage} />
-            <Route path="/stock/:stockId" Component={StockPage} />
-            <Route path="/article/:articleId" Component={ArticlePage} />
-            <Route path="/account" Component={AccountPage} />
-          </Routes>
-        </BrowserRouter>
+            <NavigationBar />
+            <Box flex={1}>
+              <Routes>
+                <Route path="/" Component={HomePage} />
+                <Route path="/stock/:stockId" Component={StockPage} />
+                <Route path="/article/:articleId" Component={ArticlePage} />
+                <Route path="/account" Component={AccountPage} />
+              </Routes>
+            </Box>
+          </BrowserRouter>
+        )}
       </ThemeProvider>
-    </>
   );
 }
 
 export default App;
-
-const loginData = {
-  username: "ericedlund2017@gmail.com",
-  password: "password",
-};
-
-// fetch(`${API_URL}/`, {
-//   method: "POST",
-//   headers: {
-//     "Content-Type": "application/x-www-form-urlencoded",
-//     "Authorization": "Basic username=ericedlund2017@gmail.com password=1234",
-//   },
-//   // credentials: 'include',
-//   body: new URLSearchParams(loginData),
-// })
-//   .then(async (response) => {
-//     if (response.ok) {
-//       // Login successful
-//       console.log("Login successful");
-//       console.log(await response.text());
-//     } else {
-//       // Login failed
-//       console.log("Login failed");
-//       console.log(response.statusText);
-//       console.log(await response.text());
-//     }
-//   })
-//   .catch((error) => {
-//     console.error("Error:", error);
-//   });

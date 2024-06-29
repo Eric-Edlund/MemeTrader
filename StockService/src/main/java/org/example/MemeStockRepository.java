@@ -1,23 +1,22 @@
 package org.example;
-
+import org.springframework.web.bind.annotation.ResponseStatus;
 import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.catalina.connector.ClientAbortException;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.io.*;
+import java.io.IOException;
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,7 +31,7 @@ public class MemeStockRepository {
     private final HikariDataSource dataSource;
     private static Logger logger = Logger.getLogger(MemeStockRepository.class.getName());
 
-    public int getTotalOwnedShares(int stockId) {
+    public long getTotalOwnedShares(int stockId) {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
                     "SELECT COUNT(*) AS is_real FROM Stock WHERE id = ?"
@@ -55,7 +54,7 @@ public class MemeStockRepository {
 
                 try (ResultSet result = stmt.executeQuery()) {
                     if (result.next()) {
-                        return result.getInt("total_owned");
+                        return result.getLong("total_owned");
                     } else {
                         return 0;
                     }
@@ -100,7 +99,7 @@ public class MemeStockRepository {
                     while (rs.next()) {
                         result.add(new PricePoint(
                                 rs.getTimestamp("time").toInstant().atOffset(ZoneOffset.UTC),
-                                (rs.getInt("total_owned"))
+                                (rs.getLong("total_owned"))
                         ));
                     }
                 }
@@ -125,7 +124,7 @@ public class MemeStockRepository {
                         if (rs.next()) {
                             result.add(new PricePoint(
                                     rs.getTimestamp("time").toInstant().atOffset(ZoneOffset.UTC),
-                                    (rs.getInt("total_owned"))
+                                    (rs.getLong("total_owned"))
                             ));
                         } else {
                             result.add(new PricePoint(startDate, 0));
@@ -142,7 +141,7 @@ public class MemeStockRepository {
                         final var dateCreated = rs.getTimestamp("dateCreated").toInstant().atOffset(ZoneOffset.UTC);
                         result.add(0, new PricePoint(
                                 dateCreated,
-                                0
+                                0L
                         ));
                     }
                 }
@@ -186,10 +185,13 @@ public class MemeStockRepository {
         }
     }
 
-    public int writeToLedger(int userId, int stockId, StockOrder stockOrder, int numShares, int pricePerShare) throws PlaceOrderFailed {
+    public int writeToLedger(int userId, int stockId, StockOrder stockOrder, long numShares, long totalPrice, boolean dryRun) throws StockOrderException {
         try (final var conn = dataSource.getConnection()) {
+            if (dryRun) {
+                conn.setAutoCommit(false);
+            }
             try (final var stmt = conn.prepareStatement(
-                    "INSERT INTO Ledger (action, userId, stockId, numShares, pricePerShare) VALUES (?, ?, ?, ?, ?)"
+                    "INSERT INTO Ledger (action, userId, stockId, numShares, totalPrice) VALUES (?, ?, ?, ?, ?)"
             )) {
                 stmt.setString(1, switch (stockOrder) {
                     case Buy -> "BUY";
@@ -197,26 +199,28 @@ public class MemeStockRepository {
                 });
                 stmt.setInt(2, userId);
                 stmt.setInt(3, stockId);
-                stmt.setInt(4, numShares);
-                stmt.setInt(5, pricePerShare);
+                stmt.setLong(4, numShares);
+                stmt.setLong(5, totalPrice);
 
                 stmt.execute();
 
             } catch (SQLException ex) {
                 logger.log(Level.FINE, "Failed to write to ledger");
-                ex.printStackTrace();
-                throw new PlaceOrderFailed("SQL Exception while writing to ledger");
+                switch (ex.getSQLState()) {
+                    case "45001": throw new StockOrderException(StockOrderException.Problem.InsufficientFunds);
+                    case "45002": throw new StockOrderException(StockOrderException.Problem.InsufficientHoldings);
+                    default: {
+                        ex.printStackTrace();
+                        throw new RuntimeException("Error writing to ledger");
+                    }
+                }
+            }
+            if (dryRun) {
+                conn.rollback();
             }
         } catch (SQLException e) {
-            if (e.getSQLState().equals("45000")) {
-                throw new RuntimeException("Insufficient balance to place order");
-            } else {
-                logger.log(Level.FINE, "Failed to write to ledger");
-                e.printStackTrace();
-                throw new PlaceOrderFailed("SQL Exception while writing to ledger");
-            }
-//            logger.log(Level.SEVERE, "Failed to connect to the database");
-//            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new RuntimeException("Error connecting to database");
         }
 
         return -1;
@@ -334,7 +338,7 @@ public class MemeStockRepository {
      * @return The total number of shares owned by the user.
      * @throws StockNotFoundException If the stock does not exist.
      */
-    public int getTotalOwnedSharesByUser(int userId, int stockId) {
+    public long getTotalOwnedSharesByUser(int userId, int stockId) {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
                     "SELECT COUNT(*) AS is_real FROM Stock WHERE id = ?"
@@ -496,7 +500,7 @@ public class MemeStockRepository {
      * @param userId The ID of the user.
      * @return The account balance of the user.
      */
-    public int getAcctBalance(int userId) {
+    public long getAcctBalance(int userId) {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
                     "SELECT balance FROM AccountBalance WHERE userId = ?"
@@ -505,7 +509,7 @@ public class MemeStockRepository {
 
                 try (ResultSet result = stmt.executeQuery()) {
                     if (result.next()) {
-                        return result.getInt("balance");
+                        return result.getLong("balance");
                     } else {
                         // throw new AccountNotFoundException("The account " + userId + " is not in the database.");
                         throw new RuntimeException("No account found");
@@ -527,14 +531,14 @@ public class MemeStockRepository {
     public List<Holding> getHoldings(int userId) {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
-                    "SELECT stockId, numShares FROM Holding WHERE userId = ?"
+                    "SELECT stockId, numShares FROM Holding WHERE userId = ? AND numShares != 0"
             )) {
                 stmt.setInt(1, userId);
 
                 try (ResultSet result = stmt.executeQuery()) {
                     List<Holding> holdings = new ArrayList<>();
                     while (result.next()) {
-                        holdings.add(new Holding(result.getInt("stockId"), result.getInt("numShares"), null));
+                        holdings.add(new Holding(result.getInt("stockId"), result.getLong("numShares"), null));
                     }
                     return holdings;
                 }
@@ -591,24 +595,105 @@ public class MemeStockRepository {
         }
     }
 
+    public Map<OffsetDateTime, BalanceHoldingsPair> getAccountHistory(OffsetDateTime startDate, OffsetDateTime endDate, int userId) {
+        final var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("UTC"));
+
+        try (final var conn = dataSource.getConnection()) {
+            try (final var stmt = conn.prepareStatement(
+                    // Every update in either the user's holding history, balance, or the value of any stock.
+                    "(\n" +
+                            "SELECT L.time, L.userId, L.stockId, HH.sharesOwned, SH.totalSharesOwned, BH.balance, BH.userId AS bal_userId\n" +
+                            "FROM Ledger L\n" +
+                            "LEFT JOIN HoldingHistory HH ON L.id = HH.ledgerId\n" +
+                            "JOIN StockHistory SH ON L.id = SH.ledgerId\n" +
+                            "LEFT JOIN AccountBalanceHistory BH ON L.id = BH.ledgerId\n" +
+                            // "WHERE (BH.userId = ? OR BH.userId IS NULL) AND (HH.userId = ? OR HH.userId IS NULL)\n" +
+                            "AND L.time < ?\n" +
+                            "ORDER BY L.time DESC LIMIT 1\n" +
+                            ")\n" +
+                            "UNION ALL" +
+                    "(SELECT L.time, L.userId, L.stockId, HH.sharesOwned, SH.totalSharesOwned, BH.balance, BH.userId AS bal_userId\n" +
+                            "FROM Ledger L\n" +
+                            "LEFT JOIN HoldingHistory HH ON L.id = HH.ledgerId\n" +
+                            "JOIN StockHistory SH ON L.id = SH.ledgerId\n" +
+                            "LEFT JOIN AccountBalanceHistory BH ON L.id = BH.ledgerId\n" +
+                            // "WHERE (BH.userId = ? OR BH.userId IS NULL) AND (HH.userId = ? OR HH.userId IS NULL)\n" +
+                            "AND L.time BETWEEN ? AND ?\n" +
+                            "ORDER BY L.time" +
+                            ")\n" +
+                            "UNION ALL\n" +
+                            "(\n" +
+                            "SELECT L.time, L.userId, L.stockId, HH.sharesOwned, SH.totalSharesOwned, BH.balance, BH.userId AS bal_userId\n" +
+                            "FROM Ledger L\n" +
+                            "LEFT JOIN HoldingHistory HH ON L.id = HH.ledgerId\n" +
+                            "JOIN StockHistory SH ON L.id = SH.ledgerId\n" +
+                            "LEFT JOIN AccountBalanceHistory BH ON L.id = BH.ledgerId\n" +
+                            // "WHERE (BH.userId = ? OR BH.userId IS NULL) AND (HH.userId = ? OR HH.userId IS NULL)\n" +
+                            "AND L.time > ?\n" +
+                            "ORDER BY L.time ASC LIMIT 1\n" +
+                            ");"
+
+//                    "SELECT L.time, L.userId, L.stockId, HH.sharesOwned, SH.totalSharesOwned, BH.balance, BH.userId AS bal_userId " +
+//                            "FROM Ledger L " +
+//                            "LEFT JOIN HoldingHistory HH ON L.id = HH.ledgerId " +
+//                            "JOIN StockHistory SH ON L.id = SH.ledgerId " +
+//                            "LEFT JOIN AccountBalanceHistory BH ON L.id = BH.ledgerId " +
+//                            // "WHERE (BH.userId = ? OR BH.userId IS NULL) OR (HH.userId = ? OR HH.userId IS NULL) " +
+//                            "AND L.time BETWEEN ? AND ? " +
+//                            "ORDER BY L.time;"
+            )) {
+                // stmt.setInt(1, userId);
+                // stmt.setInt(2, userId);
+                stmt.setObject(1, formatter.format(startDate));
+                stmt.setObject(2, formatter.format(endDate));
+                stmt.setObject(3, formatter.format(startDate));
+                stmt.setObject(4, formatter.format(endDate));
+
+                Map<OffsetDateTime, BalanceHoldingsPair> result = new HashMap<>();
+                try (final var resultSet = stmt.executeQuery()) {
+                    Long lastBalance = null;
+                    Map<Integer, RawHolding> lastHoldings = new HashMap<>();
+
+                    // Aggregate the results? Normalize the results? We're filling in the wholes, because the result set
+                    // is just a list of deltas.
+                    while (resultSet.next()) {
+                        final long bal = resultSet.getLong("balance");
+                        if (!resultSet.wasNull()) {
+                            if (resultSet.getInt("bal_userId") == userId) {
+                                lastBalance = bal;
+                            }
+                        }
+
+                        final int stockId = resultSet.getInt("stockId");
+                        lastHoldings.putIfAbsent(stockId, new RawHolding(stockId, 0, 0));
+                        var currentRawHolding = lastHoldings.get(stockId);
+                        final long totalSharesOwned = resultSet.getLong("totalSharesOwned");
+                        if (!resultSet.wasNull()) {
+                            lastHoldings.put(stockId, new RawHolding(stockId, currentRawHolding.amtOwned(), totalSharesOwned));
+                        }
+                        currentRawHolding = lastHoldings.putIfAbsent(stockId, new RawHolding(stockId, 0, 0));
+                        final long amtOwned = resultSet.getLong("sharesOwned");
+                        if (!resultSet.wasNull()) {
+                            lastHoldings.put(stockId, new RawHolding(stockId, amtOwned, currentRawHolding.totalOwned()));
+                        }
+
+                        final var time = resultSet.getTimestamp("time").toInstant().atOffset(ZoneOffset.UTC);
+                        result.put(time, new BalanceHoldingsPair(
+                                lastBalance == null ? 0 : lastBalance, //TODO: I *think* that nullability is impossible for new data
+                                lastHoldings.values().stream().toList()
+                        ));
+                    }
+                }
+
+                return result;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
-//    public Map<OffsetDateTime, BalanceHoldingsPair> getAccountHistory(String startDate, String endDate, int userId) {
-//        try (final var conn = dataSource.getConnection()) {
-//            try (final var stmt = conn.prepareStatement(
-//                    "SELECT "
-//            )) {
-//
-//                Map<OffsetDateTime, BalanceHoldingsPair> result = new HashMap<>();
-//
-//
-//
-//                return result;
-//
-//            }
-//        }
-//    }
-
-
-    public record BalanceHoldingsPair(int balance, List<Holding> holdings) {};
+    public record BalanceHoldingsPair(long balance, List<RawHolding> holdings) {};
+    public record RawHolding(int stockId, long amtOwned, long totalOwned) {
+    }
 }

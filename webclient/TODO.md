@@ -1,0 +1,7 @@
+- [ ] Testing for account graphs
+- [ ] Fix loading elements for logged out session
+- [ ] Fix graph range edge cases
+- [ ] Fix live graph max range
+- [ ] Link to image flip for memes
+- [ ] Handle repeat memes
+- [ ] Refactor global state

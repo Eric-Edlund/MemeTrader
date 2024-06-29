@@ -12,31 +12,32 @@ import { API_URL } from "./constants";
 const ApplicationContext = createContext({});
 
 const ApplicationStateProvider = ({ children }) => {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [user, setUser] = useState({});
-  const [holdings, setHoldings] = useState([]);
-  const [balance, setBalance] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [onLoginPage, setOnLoginPage] = useState(false);
+  const [recheckLogin, triggerRecheckLogin] = useReducer((a) => a + 1, 0);
 
   const systemPrefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const [darkMode, setDarkMode] = useState(false);
   const [themeReloaded, triggerThemeReload] = useReducer((a) => a + 1, 0);
-  const [recheckLogin, triggerRecheckLogin] = useReducer((a) => a + 1, 0);
-
   useEffect(
     () => determineDarkMode(setDarkMode, systemPrefersDarkMode),
     [systemPrefersDarkMode, themeReloaded],
   );
 
-  const [refresh, triggerRefresh] = useReducer((a) => a + 1, 0);
+  const [user, setUser] = useState({});
+  const [holdings, setHoldings] = useState([]);
+  const [balance, setBalance] = useState(0);
+  const [loadingAccountInfo, setLoadingAccountInfo] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [refreshAccountInfo, triggerRefreshAccountInfo] = useReducer(
+    (a) => a + 1,
+    0,
+  );
   useEffect(() => {
     if (!authenticated) return;
-    else console.log("Fetching user info");
 
     const fetchUserData = async () => {
       try {
         const data = await getUserInfo();
-        console.log(data);
         setUser(data);
       } catch (error) {
         console.error(error);
@@ -70,12 +71,11 @@ const ApplicationStateProvider = ({ children }) => {
 
     const fetchData = async () => {
       await Promise.all([fetchUserData(), fetchHoldings(), fetchBalance()]);
-      setLoading(false);
+      setLoadingAccountInfo(false);
     };
 
     fetchData();
-  }, [refresh, authenticated]);
-
+  }, [refreshAccountInfo, authenticated]);
 
   useEffect(() => {
     async function checkLogin() {
@@ -83,18 +83,19 @@ const ApplicationStateProvider = ({ children }) => {
         headers: {
           "X-Requested-With": "XMLHttpRequest",
         },
-        credentials: 'include',
+        credentials: "include",
       });
 
       loggedIn
         .json()
         .then((result) => {
-          console.log("Logged in as: " + result["name"]);
           setAuthenticated(true);
+          if (onLoginPage) {
+            setOnLoginPage(false);
+          }
         })
         .catch((rej) => {
-          console.log("Not logged in");
-          setAuthenticated(false)
+          setAuthenticated(false);
         });
     }
     checkLogin();
@@ -106,14 +107,16 @@ const ApplicationStateProvider = ({ children }) => {
         user,
         balance,
         holdings,
-        loading,
-        refresh,
-        triggerRefresh,
+        loading: loadingAccountInfo,
+        refresh: refreshAccountInfo,
+        triggerRefresh: triggerRefreshAccountInfo,
         darkMode,
         triggerThemeReload,
         authenticated,
         setAuthenticated,
         triggerRecheckLogin,
+        onLoginPage,
+        setOnLoginPage,
       }}
     >
       {children}

@@ -11,15 +11,12 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.*;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
@@ -40,20 +37,20 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails user = User.builder()
-                .username("ericedlund2017@gmail.com")
-                .password("{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(user);
-        // return new CustomUserDetailsService();
+//        UserDetails user = User.builder()
+//                .username("ericedlund2017@gmail.com")
+//                .password("{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
+//                .roles("USER")
+//                .build();
+//        return new InMemoryUserDetailsManager(user);
+
+         return new CustomUserDetailsService();
     }
 
     @Bean
     @Order(1)
     public SecurityFilterChain authFilter(HttpSecurity http) throws Exception {
         http
-
 
         .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/v1/public/**").permitAll()
@@ -64,13 +61,12 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                .csrf().disable();
+                .csrf(AbstractHttpConfigurer::disable);
 //                .csrf((csrf) -> csrf
 //                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 //                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
 //                )
 //                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
-
 
             return http.build();
     }
@@ -88,8 +84,6 @@ public class SecurityConfig {
         config.addAllowedMethod("POST");
         config.addAllowedMethod("PUT");
         source.registerCorsConfiguration("/logout", config);
-        source.registerCorsConfiguration("/login", config);
-        source.registerCorsConfiguration("/authenticated", config);
         source.registerCorsConfiguration("/v1/user/**", config);
         source.registerCorsConfiguration("/v1/public/**", config);
         source.registerCorsConfiguration("/user", config);

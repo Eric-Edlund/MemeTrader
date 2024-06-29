@@ -1,6 +1,8 @@
 package org.example;
 
-public record OrderRequestForm(int stockId, int userId, String operation, int pricePerShare, int numShares, int totalPrice) {
+import org.springframework.lang.NonNull;
+
+public record OrderRequestForm(int stockId, int userId, @NonNull String operation, long numShares, long totalPrice) {
     public StockOrder order() {
 
         return switch (operation) {

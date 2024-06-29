@@ -28,7 +28,7 @@ public class UserRepository {
                 try (final var resultSet = stmt.executeQuery()) {
                     if (resultSet.next()) {
                         return Optional.of(new StockUser(
-                                resultSet.getLong("id"),
+                                resultSet.getInt("id"),
                                 email,
                                 resultSet.getString("password"),
                                 List.of()

@@ -8,12 +8,12 @@ import java.util.List;
 
 public class StockUser implements UserDetails {
 
-    private final Long userId;
+    private final int userId;
     private final String email;
     private final String password;
     private final List<GrantedAuthority> authorities;
 
-    public StockUser(Long userId, String email, String password, List<GrantedAuthority> authorities) {
+    public StockUser(int userId, String email, String password, List<GrantedAuthority> authorities) {
         this.userId = userId;
         this.email = email;
         this.password = password;
@@ -56,7 +56,7 @@ public class StockUser implements UserDetails {
         return true;
     }
 
-    public Long getUserId() {
+    public int getUserId() {
         return userId;
     }
 }

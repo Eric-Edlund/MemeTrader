@@ -10,12 +10,13 @@ import {
   useTheme,
 } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
-import React from "react";
+import React, { useContext } from "react";
 import { useState, useEffect, useReducer } from "react";
 import { useParams } from "react-router-dom";
 import OrderForm from "../components/BuySellView";
 import LiveGraphView from "./../components/LiveGraph";
 import { getStockMetadata, getStockPrice } from "../components/api";
+import { ApplicationContext } from "../UserContext";
 
 export default function StockPage() {
   const { stockId } = useParams();
@@ -23,6 +24,8 @@ export default function StockPage() {
   const [metadata, setMetadata] = useState(null);
   const [price, setPrice] = useState(null);
   const [reloadTrigger, triggerReload] = useReducer((a) => a + 1, 0);
+
+  const { authenticated, user } = useContext(ApplicationContext);
 
   useEffect(() => {
     async function fetchData() {
@@ -41,11 +44,16 @@ export default function StockPage() {
           <AboutSection metadata={metadata} />
         </Grid>
 
-        <Grid item xs={3} paddingTop="2em" style={{position: "sticky", top: "0px"}}>
-          {metadata ? (
+        <Grid
+          item
+          xs={3}
+          paddingTop="2em"
+          style={{ position: "sticky", top: "0px" }}
+        >
+          {metadata && price && user.userId ? (
             <OrderForm
               stockId={stockId}
-              userId={1}
+              userId={user.userId}
               metadata={metadata}
               pricePerShare={price}
               onTransaction={triggerReload}
@@ -78,7 +86,7 @@ function StockHeader({ metadata, price }) {
 }
 
 function AboutSection({ metadata }) {
-  const theme = useTheme()
+  const theme = useTheme();
 
   return (
     <Box>
@@ -92,14 +100,17 @@ function AboutSection({ metadata }) {
       </Box>
 
       {metadata ? (
-        <p style={{whiteSpace: 'pre-wrap'}}>
+        <p style={{ whiteSpace: "pre-wrap" }}>
           <img
             src={metadata.imageUrl}
             style={{
               maxWidth: "33%",
               maxHeight: "40ch",
               float: "right",
-              boxShadow: theme.palette.mode === "dark" ? "none" : "0.5ch 0.5ch 0.5ch 0.5ch rgba(0,0,0,0.5)",
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? "none"
+                  : "0.5ch 0.5ch 0.5ch 0.5ch rgba(0,0,0,0.5)",
               margin: "1ch",
               marginTop: 0,
             }}
