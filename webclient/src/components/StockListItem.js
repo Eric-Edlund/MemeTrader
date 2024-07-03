@@ -21,7 +21,7 @@ import {
   Tooltip,
 } from "chart.js";
 import React from "react";
-import { getPriceHistory, getStockMetadata, getStockPrice } from "./api";
+import { usePriceHistory, getStockMetadata, getStockPrice } from "./api";
 import { elevatedStyle } from "../styles";
 
 ChartJS.register(TimeScale, LinearScale, PointElement, LineElement, Tooltip);
@@ -49,7 +49,7 @@ function StockListItem({ stockId }) {
     async function fetchHistory() {
       const yesterday = new Date(new Date().setDate(new Date().getDate() - 1));
 
-      const result = await getPriceHistory(stockId, yesterday, new Date());
+      const result = await usePriceHistory(stockId, yesterday, new Date());
 
       if (result.points.length == 0) {
         setHistory("nodata");

@@ -4,16 +4,14 @@ import {
   Container,
   TextField,
   useTheme,
-  styled,
   Typography,
   Divider,
   Alert,
 } from "@mui/material";
-import React, { useEffect } from "react";
-import { useState, useReducer } from "react";
-import { globalState } from "../App";
+import React, { useContext } from "react";
+import { useState} from "react";
+import { ApplicationContext } from "../ApplicationContext";
 import SplitButton from "./SplitButton";
-import { getStockPrice } from "./api";
 const currencyFormatter = Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -82,7 +80,7 @@ export default function OrderForm({
   }
   const theme = useTheme();
 
-  const { connected } = globalState;
+  const { connectedStatus } = useContext(ApplicationContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [invalidInput, setInvalidInput] = useState(null); // null if ok, or string reason
   const [formData, setFormData] = useState({
@@ -201,7 +199,7 @@ export default function OrderForm({
             variant="contained"
             type="submit"
             value="Place Order"
-            disabled={isSubmitting || !connected}
+            disabled={isSubmitting || connectedStatus !== "connected"}
           >
             Place Order
           </Button>

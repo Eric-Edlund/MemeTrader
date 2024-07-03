@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Skeleton, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { Line } from "react-chartjs-2";
 import {
@@ -10,13 +10,13 @@ import {
   Tooltip,
 } from "chart.js";
 import { useTranslation } from "react-i18next";
-import { getPriceHistory } from "./api";
-import { globalState } from "../App";
+import { usePriceHistory } from "./api";
+import { ApplicationContext } from "../ApplicationContext";
 
 ChartJS.register(TimeScale, LinearScale, PointElement, LineElement, Tooltip);
 
 const LiveGraph = ({ stockId, reloadTrigger }) => {
-  const { connected } = globalState;
+  const { connectedStatus } = useContext(ApplicationContext);
   const { t } = useTranslation();
 
   const [stockData, setStockData] = useState(null);
@@ -66,7 +66,7 @@ const LiveGraph = ({ stockId, reloadTrigger }) => {
 
   async function getStockData(/** @type {number}*/ stockId) {
     const data = (
-      await getPriceHistory(stockId, getStartDate(), endDate)
+      await usePriceHistory(stockId, getStartDate(), endDate)
     ).points.map(({ time, price }) => {
       return { x: new Date(time), y: price };
     });

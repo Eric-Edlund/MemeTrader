@@ -1,6 +1,7 @@
 import axios from "axios";
-import { globalState } from "../App";
+import { useContext } from "react";
 import { API_URL } from "../constants";
+import { ApplicationContext } from "../ApplicationContext";
 
 /*
  * All api functions block until reconnection.
@@ -118,15 +119,15 @@ export async function getBalance() {
  * be created and tried.
  */
 async function retrying(requestGenerator, retries = 2) {
-  const { setConnected } = globalState;
+  const { setConnectedStatus } = useContext(ApplicationContext);
 
   try {
     const result = await requestGenerator();
-    setConnected(true);
+    setConnectedStatus("connected");
     return result;
   } catch (error) {
     if (retries <= 0) {
-      setConnected(false);
+      setConnectedStatus("disconnected");
       await reconnect();
       return await retrying(requestGenerator);
     }
@@ -137,6 +138,7 @@ async function retrying(requestGenerator, retries = 2) {
 
 let trying = null;
 async function reconnect() {
+  const { setConnectedStatus} = useContext(ApplicationContext)
   if (trying) {
     return await trying;
   }
@@ -146,7 +148,7 @@ async function reconnect() {
       try {
         await axios.get(`${API_URL}/v1/public/stock/price?stockId=10`);
         clearInterval(ping);
-        globalState.setConnected(true);
+        setConnectedStatus("connected");
         trying = null;
         res();
       } catch (e) {}

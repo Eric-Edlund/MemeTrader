@@ -32,6 +32,10 @@ const ApplicationStateProvider = ({ children }) => {
     (a) => a + 1,
     0,
   );
+
+  const [connectedStatus, setConnectedStatus] = useState("connected") // "disconnected"
+
+
   useEffect(() => {
     if (!authenticated) return;
 
@@ -117,6 +121,9 @@ const ApplicationStateProvider = ({ children }) => {
         triggerRecheckLogin,
         onLoginPage,
         setOnLoginPage,
+
+        connectedStatus,
+        setConnectedStatus,
       }}
     >
       {children}

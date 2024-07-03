@@ -16,7 +16,7 @@ import { useParams } from "react-router-dom";
 import OrderForm from "../components/BuySellView";
 import LiveGraphView from "./../components/LiveGraph";
 import { getStockMetadata, getStockPrice } from "../components/api";
-import { ApplicationContext } from "../UserContext";
+import { ApplicationContext } from "../ApplicationContext";
 
 export default function StockPage() {
   const { stockId } = useParams();

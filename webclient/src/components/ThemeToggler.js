@@ -2,7 +2,7 @@ import { DarkMode, LightMode } from "@mui/icons-material";
 import { IconButton, useTheme } from "@mui/material";
 import React from "react";
 import { useContext } from "react";
-import { ApplicationContext } from "../UserContext";
+import { ApplicationContext } from "../ApplicationContext";
 
 export default function ThemeToggler() {
   const { darkMode, triggerThemeReload } = useContext(ApplicationContext);

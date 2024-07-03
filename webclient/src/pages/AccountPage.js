@@ -40,7 +40,7 @@ import {
 } from "chart.js";
 import { Doughnut, Line } from "react-chartjs-2";
 import { Link } from "react-router-dom";
-import { ApplicationContext } from "../UserContext";
+import { ApplicationContext } from "../ApplicationContext";
 import { API_URL } from "../constants";
 
 ChartJS.register(
@@ -54,28 +54,18 @@ ChartJS.register(
 );
 
 const chartColors = ["#0000FF", "#00008B", "#0000CD", "#4169E1", "#87CEEB"];
-
-function createColorAssigner() {
-  // Array of colors in order
-  let colorIndex = 0;
-
-  // Closure function that takes a group id and assigns a color
-  function assignColor(groupId) {
-    // Check if the groupId already has a color
-    if (!assignColor.colorMap[groupId]) {
-      // If the colorIndex reaches the end of the array, go back to 0
-      colorIndex = colorIndex % chartColors.length;
-      assignColor.colorMap[groupId] = chartColors[colorIndex];
-      colorIndex++;
-    }
-    return assignColor.colorMap[groupId];
+let colorIndex = 0;
+const colorMap = {}
+function assignColor(groupId) {
+  // Check if the groupId already has a color
+  if (!colorMap[groupId]) {
+    // If the colorIndex reaches the end of the array, go back to 0
+    colorIndex = colorIndex % chartColors.length;
+    colorMap[groupId] = chartColors[colorIndex];
+    colorIndex++;
   }
-  assignColor.colorMap = {};
-  return assignColor;
+  return colorMap[groupId];
 }
-
-//Create the color assigner function
-const assignColor = createColorAssigner();
 
 function AccountSummaryCard({}) {
   const { user, triggerRefresh } = useContext(ApplicationContext);

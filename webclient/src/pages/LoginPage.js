@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { useContext } from "react";
 import { API_URL } from "../constants";
 import { elevatedStyle } from "../styles";
-import { ApplicationContext } from "../UserContext";
+import { ApplicationContext } from "../ApplicationContext";
 
 export default function LoginPage() {
   const { triggerRecheckLogin } = useContext(ApplicationContext);

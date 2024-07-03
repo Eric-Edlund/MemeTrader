@@ -23,12 +23,10 @@ import ArticlePage from "./pages/ArticlePage";
 import HomePage from "./pages/HomePage";
 import { API_URL } from "./constants";
 import AccountPage from "./pages/AccountPage";
-import { ApplicationContext } from "./UserContext";
+import { ApplicationContext } from "./ApplicationContext";
 import { createTheme, ThemeProvider, useTheme } from "@mui/material/styles";
 import ThemeToggler from "./components/ThemeToggler";
 import LoginPage from "./pages/LoginPage";
-
-export const globalState = {};
 
 function NavigationBar() {
   const { user, authenticated, triggerRecheckLogin, setOnLoginPage } =
@@ -86,7 +84,7 @@ function NavigationBar() {
 }
 
 function App() {
-  const { darkMode, onLoginPage } = useContext(ApplicationContext);
+  const { darkMode, onLoginPage, connectedStatus } = useContext(ApplicationContext);
 
   const theme = useMemo(
     () =>
@@ -98,19 +96,6 @@ function App() {
     [darkMode],
   );
 
-  const [connected, setConnected] = useState(true); // To the internet/server
-  const [reconnected, triggerReconnected] = useReducer((a) => a + 1, 0);
-
-  globalState.connected = connected;
-  globalState.setConnected = setConnected;
-  globalState.reconnected = reconnected;
-
-  useEffect(() => {
-    if (connected) {
-      triggerReconnected();
-    }
-  }, [connected]);
-
   return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
@@ -119,7 +104,7 @@ function App() {
           <LoginPage />
         ) : (
           <BrowserRouter>
-            <Snackbar open={!connected}>
+            <Snackbar open={connectedStatus !== "connected"}>
               <Alert severity="error" variant="filled">
                 Unable to connect to server.
               </Alert>

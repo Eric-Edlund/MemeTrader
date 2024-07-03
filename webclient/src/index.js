@@ -8,7 +8,7 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import "./i18n";
-import { ApplicationStateProvider } from "./UserContext";
+import { ApplicationStateProvider } from "./ApplicationContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
