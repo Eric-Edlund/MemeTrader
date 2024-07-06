@@ -1,8 +1,9 @@
 /chatgpt-secret-key.txt
-/StockService/static/*.png
-/StockService/uploads/images/cddb54a2-ca86-4288-bcb7-1ddd49165d99.png
-/.direnv/
-/.envrc
 /sql.sql
-/StockService/.envrc
-/StockService/.direnv/
+.idea
+/server/.project
+/server/.idea/
+/server/common/target/
+/server/articlegeneratorservice/target/
+/server/webserver/target/
+/server/config/target/

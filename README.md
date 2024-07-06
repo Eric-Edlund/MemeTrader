@@ -1,11 +1,16 @@
-# Meme Stock Market
+# MemeTrader Monorepo
 
-A trading platform for memes.
+A website allowing people to invest in internet memes. This repo includes the 
+frontend and backend components.
 
+## Project Structure
 
-- Frontend in react
-- We need auth
-- Java boot backend
-- MySql db
+- **Client**: React.js application.
+- **Server**: Java Spring application.
 
+## How to install and execute
+
+1. Clone the repository
+2. Follow the instructions to install the sub-projects
+3. Start the server
 
