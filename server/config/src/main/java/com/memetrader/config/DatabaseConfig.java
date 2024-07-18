@@ -9,8 +9,20 @@ import org.springframework.context.annotation.Configuration;
 public class DatabaseConfig {
 
     private static final String DB_URL = "jdbc:mysql://localhost:3306/MemeStockExchange";
-    private static final String DB_USER = "memestockserver";
-    private static final String DB_PASS = "1234"; //System.getenv("DB_PASSWORD");
+    private static final String DB_USER = System.getenv("DB_USERNAME");
+    private static final String DB_PASS = System.getenv("DB_PASSWORD");
+
+    public DatabaseConfig() {
+        if (DB_USER == null) {
+            System.out.println("Must specify DB_USERNAME");
+            System.exit(1);
+        }
+        if (DB_PASS == null) {
+            System.out.println("Must specify DB_PASSWORD");
+            System.exit(1);
+        }
+    }
+
     @Bean
     public HikariDataSource dataSource() {
         HikariConfig config = new HikariConfig();
@@ -19,6 +31,12 @@ public class DatabaseConfig {
         config.setPassword(DB_PASS);
         config.setMaximumPoolSize(10);
 
-        return new HikariDataSource(config);
+        try {
+            return new HikariDataSource(config);
+        } catch (RuntimeException e) {
+            System.out.println("Failed to connect to database.");
+            System.exit(1);
+            return null;
+        }
     }
 }
