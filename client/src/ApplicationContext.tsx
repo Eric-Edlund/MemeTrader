@@ -122,8 +122,7 @@ const ApplicationStateProvider = ({ children }) => {
   }, [recheckLogin]);
 
   return (
-    <ApplicationContext.Provider
-      value={{
+    <ApplicationContext.Provider value={{
         user,
         balance,
         holdings,

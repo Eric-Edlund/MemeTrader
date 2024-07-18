@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 @Service
 public class ChatGPTDescriptionGenerator {
 
-    private static Logger logger = Logger.getLogger(ChatGPTDescriptionGenerator.class.getName());
+    private static final Logger logger = Logger.getLogger(ChatGPTDescriptionGenerator.class.getName());
 
     @Autowired
     MemeStockRepository memeStockRepository;

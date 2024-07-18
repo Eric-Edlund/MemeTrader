@@ -7,3 +7,6 @@
 /server/articlegeneratorservice/target/
 /server/webserver/target/
 /server/config/target/
+/.direnv/
+.env
+/images

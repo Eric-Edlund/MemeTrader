@@ -23,7 +23,7 @@ public class MemeStockRepository {
     }
 
     private final HikariDataSource dataSource;
-    private static Logger logger = Logger.getLogger(MemeStockRepository.class.getName());
+    private static final Logger logger = Logger.getLogger(MemeStockRepository.class.getName());
 
     public long getTotalOwnedShares(int stockId) {
         try (Connection conn = dataSource.getConnection()) {
@@ -204,7 +204,10 @@ public class MemeStockRepository {
                     case "45001": throw new StockOrderException(StockOrderException.Problem.InsufficientFunds);
                     case "45002": throw new StockOrderException(StockOrderException.Problem.InsufficientHoldings);
                     default: {
-                        ex.printStackTrace();
+                        logger.log(Level.FINE, "Received unknown error code from database while writing to ledger: "
+                                + ex.getSQLState() + "\n"
+                                + ex
+                        );
                         throw new RuntimeException("Error writing to ledger");
                     }
                 }
@@ -213,7 +216,7 @@ public class MemeStockRepository {
                 conn.rollback();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.log(Level.FINE, "Sql exception while writing to ledger.\n" + e);
             throw new RuntimeException("Error connecting to database");
         }
 
@@ -417,18 +420,16 @@ public class MemeStockRepository {
 
     /**
      * Adds the given article to the database under the current date.
-     * @param articleTitle
-     * @param articleBody
-     * @param imageUrl The url for the associated article image.
+     * @param imageName The url for the associated article image.
      */
-    public void addArticle(String articleTitle, String articleBody, String imageUrl) {
+    public void addArticle(String articleTitle, String articleBody, String imageName) {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
                     "INSERT INTO Article (title, body, imageUrl) VALUES (?, ?, ?)"
             )) {
                 stmt.setString(1, articleTitle);
                 stmt.setString(2, articleBody);
-                stmt.setString(3, imageUrl);
+                stmt.setString(3, imageName);
                 stmt.execute();
             }
         } catch (SQLException e) {
@@ -687,7 +688,7 @@ public class MemeStockRepository {
     }
 
 
-    public record BalanceHoldingsPair(long balance, List<RawHolding> holdings) {};
+    public record BalanceHoldingsPair(long balance, List<RawHolding> holdings) {}
     public record RawHolding(int stockId, long amtOwned, long totalOwned) {
     }
 }

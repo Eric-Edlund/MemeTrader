@@ -11,7 +11,7 @@ import {
   Link,
 } from "react-router-dom";
 import React, { useState, useEffect } from "react";
-import { API_URL } from "../constants";
+import { API_URL, ARTICLE_IMAGES_URL } from "../constants";
 import { PrimaryArticleThumbnail, SecondaryArticleThumbnail } from "../components/ArticleThumbnails";
 import { getFrontpageStocks } from "../api";
 
@@ -31,7 +31,11 @@ export default function HomePage() {
       try {
         const response = await fetch(`${API_URL}/v1/public/articles?num=6`);
         if (response.ok) {
-          setArticles(await response.json());
+          const articles = await response.json();
+          for (const article of articles) {
+            article.imageUrl = `${ARTICLE_IMAGES_URL}/${article.imageUrl}`
+          }
+          setArticles(articles);
         }
       } catch (e) {
         console.log("Failed to fetch articles " + e);

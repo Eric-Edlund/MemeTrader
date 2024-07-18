@@ -16,7 +16,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -50,6 +50,8 @@ public class ChatGPTArticleGenerator {
         if (lastArticleDate != null && !lastArticleDate.isBefore(OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS))) {
             System.out.println("We already published an article today.");
             return;
+        } else {
+            System.out.println("Generating an article.");
         }
 
         final var stockData = getRecentData();
@@ -63,12 +65,15 @@ public class ChatGPTArticleGenerator {
         final var uuid = UUID.randomUUID();
         try {
             assert image != null;
-            Files.write(Paths.get("static/" + uuid + ".png"), image, StandardOpenOption.CREATE);
+            var path = Path.of(Main.IMAGE_STORE_PATH, Main.ARTICLE_SUB_PATH, uuid + ".png");
+            Files.createDirectories(path.getParent());
+            Files.write(path, image, StandardOpenOption.CREATE);
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
 
-        memeStockRepository.addArticle(components.get(0), components.get(1), "http://localhost:8080/" + uuid + ".png");
+        memeStockRepository.addArticle(components.get(0), components.get(1), uuid + ".png");
     }
 
     private byte[] generateImage(String articleTitle, String articleBody) {
@@ -77,7 +82,7 @@ public class ChatGPTArticleGenerator {
             final var conn = (HttpURLConnection) new URL(url).openConnection();
             conn.addRequestProperty("Content-Type", "application/json");
             conn.addRequestProperty("Accept", "application/json");
-            conn.addRequestProperty("Authorization", "Bearer " + System.getenv("OPENAI_API_KEY"));
+            conn.addRequestProperty("Authorization", "Bearer " + Main.OPENAI_API_KEY);
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
 
@@ -120,7 +125,7 @@ public class ChatGPTArticleGenerator {
             final var conn = (HttpURLConnection) new URL(url).openConnection();
             conn.addRequestProperty("Content-Type", "application/json");
             conn.addRequestProperty("Accept", "application/json");
-            conn.addRequestProperty("Authorization", "Bearer " + System.getenv("OPENAI_API_KEY"));
+            conn.addRequestProperty("Authorization", "Bearer " + Main.OPENAI_API_KEY);
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             final var request = "{" +
@@ -151,6 +156,7 @@ public class ChatGPTArticleGenerator {
             conn.disconnect();
             return textResponse;
         } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error while generating article text:\n " + e);
             throw new RuntimeException(e);
         }
     }
