@@ -2,6 +2,7 @@ package com.memetrader.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.boot.SpringApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,11 +16,11 @@ public class DatabaseConfig {
     public DatabaseConfig() {
         if (DB_USER == null) {
             System.out.println("Must specify DB_USERNAME");
-            System.exit(1);
+            throw new RuntimeException("DB_USERNAME not specified.");
         }
         if (DB_PASS == null) {
             System.out.println("Must specify DB_PASSWORD");
-            System.exit(1);
+            throw new RuntimeException("DB_PASSWORD not specified.");
         }
     }
 
@@ -35,8 +36,7 @@ public class DatabaseConfig {
             return new HikariDataSource(config);
         } catch (RuntimeException e) {
             System.out.println("Failed to connect to database.");
-            System.exit(1);
-            return null;
+            throw new RuntimeException("Failed to connect to database.");
         }
     }
 }
