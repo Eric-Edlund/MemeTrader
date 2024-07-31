@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
-@ComponentScan({ "com.memetrader.webserver", "com.memetrader.common", "com.memetrader.config" })
+@ComponentScan({ "com.memetrader.webserver", "com.memetrader.common" })
 @SpringBootApplication
 public class Main {
 

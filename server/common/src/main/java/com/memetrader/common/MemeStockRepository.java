@@ -1,6 +1,6 @@
 package com.memetrader.common;
+
 import com.zaxxer.hikari.HikariDataSource;
-import com.memetrader.config.DatabaseConfig;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;

@@ -12,18 +12,7 @@
     <groupId>org.memetrader</groupId>
     <artifactId>ContentGeneratorService</artifactId>
 
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <dependencies>
-        <dependency>
-            <groupId>com.memetrader</groupId>
-            <artifactId>config</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.memetrader</groupId>
             <artifactId>common</artifactId>

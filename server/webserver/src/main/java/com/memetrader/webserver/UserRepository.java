@@ -2,7 +2,7 @@ package com.memetrader.webserver;
 
 import com.memetrader.common.StockUser;
 import com.zaxxer.hikari.HikariDataSource;
-import com.memetrader.config.DatabaseConfig;
+import com.memetrader.common.DatabaseConfig;
 import com.memetrader.common.MemeStockRepository;
 import org.springframework.stereotype.Repository;
 
