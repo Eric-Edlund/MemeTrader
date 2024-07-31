@@ -18,16 +18,15 @@ import java.util.Properties;
 @Configuration
 public class DatabaseConfig {
 
-    @Value("db.url")
-    private static String DB_URL;
-    @Value("db.username")
-    private static String DB_USER;
-    @Value("db.password")
-    private static String DB_PASS;
+    @Value("${db.url}")
+    public String DB_URL;
+    @Value("${db.username}")
+    public String DB_USER;
+    @Value("${db.password}")
+    public String DB_PASS;
 
     @PostConstruct
     public void init() {
-        // Environment env = Environment.
         if (DB_USER == null) {
             System.out.println("Must specify db.username");
             throw new RuntimeException("db username not specified.");
@@ -40,12 +39,8 @@ public class DatabaseConfig {
             System.out.println("Must specify db.url");
             throw new RuntimeException("db url not specified.");
         }
-
     }
 
-    /**
-     * @return null on failure
-     */
     @Bean
     public HikariDataSource dataSource() {
         HikariConfig config = new HikariConfig();
@@ -58,7 +53,7 @@ public class DatabaseConfig {
             return new HikariDataSource(config);
         } catch (RuntimeException e) {
             System.out.println("Failed to connect to database.");
-            return null;
+            throw new IllegalStateException("Failed to connect to database.");
         }
     }
 }

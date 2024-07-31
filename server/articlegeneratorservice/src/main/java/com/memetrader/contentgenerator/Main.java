@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.nio.file.Path;
 
-@ComponentScan({ "com.memetrader.contentgenerator", "com.memetrader.common", "com.memetrader.config"})
+@ComponentScan({ "com.memetrader.contentgenerator", "com.memetrader.common"})
 @SpringBootApplication
 @EnableScheduling
 public class Main {
