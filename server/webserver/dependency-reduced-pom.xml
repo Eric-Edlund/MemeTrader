@@ -12,6 +12,11 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>3.3.0</version>
+      </plugin>
+      <plugin>
         <artifactId>maven-clean-plugin</artifactId>
         <version>3.1.0</version>
       </plugin>
@@ -56,13 +61,6 @@
             <goals>
               <goal>shade</goal>
             </goals>
-            <configuration>
-              <transformers>
-                <transformer>
-                  <mainClass>com.memetrader.webserver.Main</mainClass>
-                </transformer>
-              </transformers>
-            </configuration>
           </execution>
         </executions>
       </plugin>
