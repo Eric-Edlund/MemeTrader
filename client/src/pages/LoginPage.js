@@ -22,8 +22,6 @@ export default function LoginPage() {
   const [badCredentials, setBadCredentials] = useState(false);
 
   function handleSubmit() {
-    console.log(email);
-    console.log(password);
     fetch(`${API_URL}/user`, {
       method: "GET",
       headers: {

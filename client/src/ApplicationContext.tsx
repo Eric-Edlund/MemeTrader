@@ -99,7 +99,7 @@ const ApplicationStateProvider = ({ children }) => {
 
   useEffect(() => {
     async function checkLogin() {
-      const loggedIn = await fetch(`${API_URL}/user`, {
+      const loggedIn = await fetch(`${API_URL}/v1/user`, {
         headers: {
           "X-Requested-With": "XMLHttpRequest",
         },
