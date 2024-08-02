@@ -22,7 +22,7 @@ export default function LoginPage() {
   const [badCredentials, setBadCredentials] = useState(false);
 
   function handleSubmit() {
-    fetch(`${API_URL}/user`, {
+    fetch(`${API_URL}/v1/user`, {
       method: "GET",
       headers: {
         Authorization: "Basic " + btoa(email + ":" + password),
