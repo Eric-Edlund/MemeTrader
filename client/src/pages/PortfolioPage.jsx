@@ -28,7 +28,6 @@ import {
 import { Doughnut, Line } from "react-chartjs-2";
 import { Link } from "react-router-dom";
 import { ApplicationContext } from "../ApplicationContext";
-import { API_URL } from "../constants";
 
 ChartJS.register(
   ArcElement,
@@ -306,9 +305,8 @@ function AccountPage() {
 //   },
 // };
 
-function FinancialSummary({ balance, totalStockValue, holdings, data }) {
+function PieChart({data, balance, totalStockValue}) {
   return (
-    <>
       <Grid container spacing={2} padding="1em">
         <Grid item xs={6} alignContent="center" textAlign="right">
           <Typography variant="h4">
@@ -323,9 +321,21 @@ function FinancialSummary({ balance, totalStockValue, holdings, data }) {
           <Doughnut data={data} />
         </Grid>
       </Grid>
+  )
+}
 
-      <h2>Holdings</h2>
-      <HoldingsTable holdings={holdings} />
+function FinancialSummary({ balance, totalStockValue, holdings, data }) {
+  return (
+    <>
+      <Grid container>
+        <Grid item xs={12} lg={6} alignContent="center">
+          <PieChart data={data} balance={balance} totalStockValue={totalStockValue}/>
+        </Grid>
+        <Grid item xs={12} lg={6}>
+          <h2>Holdings</h2>
+          <HoldingsTable holdings={holdings} />
+        </Grid>
+      </Grid>
     </>
   );
 }

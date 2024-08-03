@@ -1,4 +1,3 @@
-import "./App.css";
 import StockPage from "./pages/StockPage";
 import {
   Snackbar,

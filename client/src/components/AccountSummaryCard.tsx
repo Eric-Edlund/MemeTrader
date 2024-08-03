@@ -1,6 +1,6 @@
 import { CardContent, Drawer, Link, Toolbar, Typography } from "@mui/material";
 import React from "react";
-import { useContext, useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { setUserBio } from "../api";
 import { ApplicationContext } from "../ApplicationContext";
 import { elevatedStyle } from "../styles";

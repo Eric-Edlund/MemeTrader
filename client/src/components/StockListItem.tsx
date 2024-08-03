@@ -37,7 +37,7 @@ function StockListItem({ stockId }) {
     async function fetchHistory() {
       const yesterday = new Date(new Date().setDate(new Date().getDate() - 1));
 
-      const result = await getPriceHistory(stockId, yesterday, new Date());
+      const result: {points: any[]} = await getPriceHistory(stockId, yesterday, new Date());
 
       if (result.points.length == 0) {
         setHistory("nodata");
@@ -65,7 +65,14 @@ function StockListItem({ stockId }) {
           },
         ],
       });
-      setDelta(result.points[result.points.length - 1].y - result.points[0].y);
+
+      let yesterdayValue = result.points.find(pt => pt.x <= yesterday) ?? result.points[0]
+      console.log(result.points)
+      console.log(yesterdayValue)
+
+
+
+      setDelta(result.points[result.points.length - 1].y - yesterdayValue.y);
     }
     fetchHistory();
   }, []);
