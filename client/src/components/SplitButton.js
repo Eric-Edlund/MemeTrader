@@ -50,7 +50,7 @@ export default function SplitButton({ values, labels, onChange, name }) {
   }
 
   return (
-    <Button onMouseDown={handleClick} sx={{ p: 0 }}>
+    <Button onPointerDown={handleClick} sx={{ p: 0 }}>
       <Box
         sx={{
           display: "flex",

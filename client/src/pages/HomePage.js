@@ -61,7 +61,7 @@ export default function HomePage() {
               <Link
                 key={id}
                 to={`/stock/${id}`}
-                onMouseDown={event => event.target.click()}
+                onPointerDown={event => event.target.click()}
                 style={{ textDecoration: "none", color: "black" }}
               >
                 <Button fullWidth style={{color: "inherit"}}>

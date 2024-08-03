@@ -139,7 +139,7 @@ function HoldingsTable({ holdings }) {
                 key={index}
                 component={Link}
                 to={`/stock/${holding.stockId}`}
-                onMouseDown={(event) => event.target.click()}
+                onPointerDown={(event) => event.target.click()}
                 sx={{ textDecoration: "none" }}
               >
                 <TableCell sx={{ display: "flex" }}>

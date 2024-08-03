@@ -30,7 +30,7 @@ export function PrimaryArticleThumbnail({ article }) {
         },
         marginBottom: '1em',
       }}
-      onMouseDown={() => navigate("/article/" + id, { state: { article } })}
+      onPointerDown={() => navigate("/article/" + id, { state: { article } })}
     >
       <div style={{ cursor: "pointer" }}>
         {article ? (
@@ -125,7 +125,7 @@ export function SecondaryArticleThumbnail({ article }) {
           },
         }}
         style={{ cursor: "pointer" }}
-        onMouseDown={() => navigate("/article/" + id, { state: { article } })}
+        onPointerDown={() => navigate("/article/" + id, { state: { article } })}
       >
         {article ? (
           <>

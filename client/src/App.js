@@ -36,14 +36,14 @@ function NavigationBar() {
         <Link
           style={{ textDecoration: "none", color: "inherit" }}
           to="/"
-          onMouseDown={(event) => event.target.click()}
+          onPointerDown={(event) => event.target.click()}
         >
           <Typography marginX="1ch">Home</Typography>
         </Link>
         <Link
           style={{ textDecoration: "none", color: "inherit" }}
           to="/account"
-          onMouseDown={(event) => event.target.click()}
+          onPointerDown={(event) => event.target.click()}
         >
           <Typography marginX="1ch">Account</Typography>
         </Link>
@@ -54,7 +54,7 @@ function NavigationBar() {
 
         {authenticated ? (
           <a
-            onMouseDownCapture={() => {
+            onPointerDownCapture={() => {
               fetch(`${API_URL}/logout`, {
                 method: "POST",
                 credentials: "include",
@@ -68,7 +68,7 @@ function NavigationBar() {
           </a>
         ) : (
           <>
-            <Button onMouseDown={setOnLoginPage}>
+            <Button onPointerDown={setOnLoginPage}>
               <Typography color={theme.palette.common.white}>Log in</Typography>
             </Button>
           </>

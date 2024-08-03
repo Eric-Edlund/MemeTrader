@@ -84,7 +84,7 @@ export default function LoginPage() {
           <Button
             variant="contained"
             sx={{ marginTop: "1em" }}
-            onMouseDown={handleSubmit}
+            onPointerDown={handleSubmit}
           >
             Login
           </Button>

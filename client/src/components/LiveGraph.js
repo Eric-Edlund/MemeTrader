@@ -110,15 +110,15 @@ const LiveGraph = ({ stockId, reloadTrigger }) => {
           setRange(event.target.value);
         }}
       >
-        <ToggleButton value="1" onMouseDown={click}>
+        <ToggleButton value="1" onPointerDown={click}>
           {t("1D")}
         </ToggleButton>
-        <ToggleButton onMouseDown={click} value="7">{t("1W")}</ToggleButton>
-        <ToggleButton onMouseDown={click} value="30">{t("1M")}</ToggleButton>
-        <ToggleButton onMouseDown={click} value="90">{t("3M")}</ToggleButton>
-        <ToggleButton onMouseDown={click} value="365">{t("1Y")}</ToggleButton>
-        <ToggleButton onMouseDown={click} value="1825">{t("5Y")}</ToggleButton>
-        <ToggleButton onMouseDown={click} value="99999">{t("MAX")}</ToggleButton>
+        <ToggleButton onPointerDown={click} value="7">{t("1W")}</ToggleButton>
+        <ToggleButton onPointerDown={click} value="30">{t("1M")}</ToggleButton>
+        <ToggleButton onPointerDown={click} value="90">{t("3M")}</ToggleButton>
+        <ToggleButton onPointerDown={click} value="365">{t("1Y")}</ToggleButton>
+        <ToggleButton onPointerDown={click} value="1825">{t("5Y")}</ToggleButton>
+        <ToggleButton onPointerDown={click} value="99999">{t("MAX")}</ToggleButton>
       </ToggleButtonGroup>
     </>
   );

@@ -11,10 +11,12 @@ export default function ThemeToggler() {
 
   return (
     <IconButton
-      onMouseDown={function () {
+      onPointerDown={
+        function() {
         window.localStorage.setItem("theme", darkMode ? "light" : "dark");
         triggerThemeReload();
-      }}
+        }
+      }
     >
       {darkMode ? <LightMode /> : <DarkMode sx={{color: theme.palette.common.white}}/>}
     </IconButton>
