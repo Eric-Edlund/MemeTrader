@@ -28,6 +28,6 @@
   <modules>
     <module>webserver</module>
     <module>common</module>
-    <module>articlegeneratorservice</module>
+    <module>contentgeneratorservice</module>
   </modules>
 </project>
