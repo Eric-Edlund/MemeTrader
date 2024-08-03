@@ -38,6 +38,9 @@ public class ChatGPTArticleGenerator {
     @Autowired
     MemeStockService memeStockService;
 
+    @Autowired
+    public ContentGeneratorConfig config;
+
     private static final Logger logger = Logger.getLogger(ChatGPTDescriptionGenerator.class.getName());
 
     /**
@@ -65,7 +68,7 @@ public class ChatGPTArticleGenerator {
         final var uuid = UUID.randomUUID();
         try {
             assert image != null;
-            var path = Path.of(Main.IMAGE_STORE_PATH, Main.ARTICLE_SUB_PATH, uuid + ".png");
+            var path = Path.of(config.IMAGE_STORE_PATH, config.ARTICLE_SUB_PATH, uuid + ".png");
             Files.createDirectories(path.getParent());
             Files.write(path, image, StandardOpenOption.CREATE);
         } catch (IOException e) {
@@ -82,7 +85,7 @@ public class ChatGPTArticleGenerator {
             final var conn = (HttpURLConnection) new URL(url).openConnection();
             conn.addRequestProperty("Content-Type", "application/json");
             conn.addRequestProperty("Accept", "application/json");
-            conn.addRequestProperty("Authorization", "Bearer " + Main.OPENAI_API_KEY);
+            conn.addRequestProperty("Authorization", "Bearer " + config.OPENAI_API_KEY);
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
 
@@ -125,7 +128,7 @@ public class ChatGPTArticleGenerator {
             final var conn = (HttpURLConnection) new URL(url).openConnection();
             conn.addRequestProperty("Content-Type", "application/json");
             conn.addRequestProperty("Accept", "application/json");
-            conn.addRequestProperty("Authorization", "Bearer " + Main.OPENAI_API_KEY);
+            conn.addRequestProperty("Authorization", "Bearer " + config.OPENAI_API_KEY);
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             final var request = "{" +
@@ -150,6 +153,8 @@ public class ChatGPTArticleGenerator {
             int responseCode = conn.getResponseCode();
             if (responseCode != 200) {
                 System.out.println("Article request response code " + responseCode + " " + conn.getResponseMessage());
+                var err = new String(conn.getErrorStream().readAllBytes());
+                System.out.println("ErrStream: " + err);
             }
 
             final var textResponse = new String(conn.getInputStream().readAllBytes());
