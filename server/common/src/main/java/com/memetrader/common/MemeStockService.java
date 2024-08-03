@@ -11,7 +11,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-
 @Service
 public class MemeStockService {
 
@@ -21,6 +20,7 @@ public class MemeStockService {
     public MemeStockService(MemeStockRepository memeStockRepository) {
         this.memeStockRepository = memeStockRepository;
     }
+
     private final MemeStockRepository memeStockRepository;
 
     private static final int PRICE_COEF = 7;
@@ -39,13 +39,15 @@ public class MemeStockService {
     /**
      * Returns the history of a stock.
      *
-     * @param stockId The id of the stock.
+     * @param stockId   The id of the stock.
      * @param startDate The start date of the history.
-     * @param endDate The end date of the history.
+     * @param endDate   The end date of the history.
      * @return The history of the stock.
      */
     public List<PricePoint> getHistory(int stockId, OffsetDateTime startDate, OffsetDateTime endDate) {
-        return memeStockRepository.getStockHistory(stockId, startDate, endDate).stream().map(pricePoint -> new PricePoint(pricePoint.time(), pricePoint.price() * PRICE_COEF + 1)).collect(Collectors.toList());
+        return memeStockRepository.getStockHistory(stockId, startDate, endDate).stream()
+                .map(pricePoint -> new PricePoint(pricePoint.time(), pricePoint.price() * PRICE_COEF + 1))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -59,21 +61,22 @@ public class MemeStockService {
         return memeStockRepository.getMetadata(stockId);
     }
 
-
     /**
      * Places an order for a stock.
      *
-     * @param userId The id of the user.
-     * @param stockId The id of the stock.
+     * @param userId     The id of the user.
+     * @param stockId    The id of the stock.
      * @param stockOrder The type of order (buy or sell).
-     * @param numShares The number of shares to buy or sell.
+     * @param numShares  The number of shares to buy or sell.
      * @param totalPrice The price of the order.
-     * @param dryRun If true, don't commit the transaction, just the error if there is one.
+     * @param dryRun     If true, don't commit the transaction, just the error if
+     *                   there is one.
      * @return The order number.
      * @throws StockOrderException If the order is invalid.
      */
-    public int placeOrder(int userId, int stockId, StockOrder stockOrder, long numShares, long totalPrice, boolean dryRun) throws StockOrderException{
-        //TODO: Do we need this check if the database checks ledger updates for us?
+    public int placeOrder(int userId, int stockId, StockOrder stockOrder, long numShares, long totalPrice,
+            boolean dryRun) throws StockOrderException {
+        // TODO: Do we need this check if the database checks ledger updates for us?
         if (stockOrder == StockOrder.Sell && !isSellOrderAllowed(userId, stockId, numShares)) {
             throw new StockOrderException(StockOrderException.Problem.InsufficientHoldings);
         }
@@ -90,11 +93,12 @@ public class MemeStockService {
 
     /**
      * The cost of changing the number of shares owned from a to b.
+     * 
      * @param sharesA Number of shares owned before operation.
      * @param sharesB Number of shares owned after operation.
      * @return Always positive
      */
-   private long transactionPrice(long sharesA, long sharesB) {
+    private long transactionPrice(long sharesA, long sharesB) {
         if (sharesA > sharesB) {
             long tmp = sharesA;
             sharesA = sharesB;
@@ -122,7 +126,7 @@ public class MemeStockService {
      * Searches for stocks by a search string.
      *
      * @param searchString The search string.
-     * @param numResults The maximum number of results.
+     * @param numResults   The maximum number of results.
      * @return The search results.
      */
     public List<StockSearchResultV1> searchStocks(String searchString, int numResults) {
@@ -135,7 +139,9 @@ public class MemeStockService {
             map.get(option.title()).add(option);
         }
 
-        return FuzzySearch.extractSorted(searchString, options.stream().map(StockSearchResultV1::title).collect(Collectors.toSet()))
+        return FuzzySearch
+                .extractSorted(searchString,
+                        options.stream().map(StockSearchResultV1::title).collect(Collectors.toSet()))
                 .stream()
                 .map(title -> map.get(title.getString()))
                 .flatMap(Collection::stream)
@@ -143,7 +149,8 @@ public class MemeStockService {
                 .toList();
     }
 
-    public Map<OffsetDateTime, BalanceHoldingsPair> getAccountHistory(OffsetDateTime start, OffsetDateTime end, int userId) {
+    public Map<OffsetDateTime, BalanceHoldingsPair> getAccountHistory(OffsetDateTime start, OffsetDateTime end,
+            int userId) {
         return memeStockRepository.getAccountHistory(start, end, userId).entrySet().stream()
                 .map(entry -> {
                     final var balance = entry.getValue().balance();
@@ -154,14 +161,11 @@ public class MemeStockService {
                                     .map(rawHolding -> new Holding(
                                             rawHolding.stockId(),
                                             rawHolding.amtOwned(),
-                                            rawHolding.totalOwned() * PRICE_COEF + 1
-                                    ))
-                                    .toList()
-                    ));
+                                            rawHolding.totalOwned() * PRICE_COEF + 1))
+                                    .toList()));
                 })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
-
 
     public long getTransactionValue(int stockId, String operation, long numShares) {
         final var currentOwned = memeStockRepository.getTotalOwnedShares(stockId);
@@ -171,5 +175,44 @@ public class MemeStockService {
             default -> throw new IllegalStateException("Unexpected value: " + operation);
         };
         return transactionPrice(currentOwned, finalOwned);
+    }
+
+    private static class Tuple<A, B> {
+        public Tuple(A a, B b) {
+            this.a = a;
+            this.b = b;
+        }
+        final A a;
+        final B b;
+    }
+
+    /**
+     * Retrieves the n stocks with the highest abs(max - min) share value.
+     */
+    public List<Integer> getNMostVolatile(int n) {
+        var stocks = memeStockRepository.getAllStocks();
+        var histories = stocks.stream()
+                .map(stockId -> new Tuple<Integer, List<PricePoint>>(stockId,
+                        getHistory(stockId, OffsetDateTime.now().minusDays(1), OffsetDateTime.now())))
+                .map(tuple -> {
+                    var history = tuple.b;
+
+                    return new Tuple<Integer, List<Long>>(
+                            tuple.a,
+                            List.of(
+                                    history.stream().map(PricePoint::price).min((a, b) -> (int) (b - a))
+                                            .orElseGet(() -> 1L),
+                                    history.stream().map(PricePoint::price).max((a, b) -> (int) (b - a))
+                                            .orElseGet(() -> 1L)));
+                })
+                .collect(Collectors.toList());
+        histories.sort((a, b) -> (int) (Math.abs(b.b.get(1) - b.b.get(0)) - Math.abs(a.b.get(1) - a.b.get(0))));
+
+        var result = histories.stream()
+                .map(tuple -> tuple.a)
+                .limit(n)
+                .collect(Collectors.toList());
+
+        return result;
     }
 }
