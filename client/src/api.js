@@ -49,7 +49,7 @@ export async function getFrontpageStocks() {
 export async function getSearchResults(inputValue) {
   const response = await retrying(() =>
     fetch(
-      "http://localhost:8080/v1/public/searchStocks?" +
+      `${API_URL}/v1/public/searchStocks?` +
         new URLSearchParams([["searchString", inputValue]]),
     ),
   );

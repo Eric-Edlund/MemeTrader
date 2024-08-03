@@ -11,6 +11,7 @@ import {
 import React, { useContext } from "react";
 import { useState} from "react";
 import { ApplicationContext } from "../ApplicationContext";
+import { API_URL } from "../constants";
 import SplitButton from "./SplitButton";
 const currencyFormatter = Intl.NumberFormat("en-US", {
   style: "currency",
@@ -43,7 +44,7 @@ async function submitOrder(event, formData, totalPrice, onTransaction) {
  */
 async function sendOrder(orderData, special = "") {
   const response = await fetch(
-    "http://localhost:8080/v1/user/order" +
+    `${API_URL}/v1/user/order` +
       (special == "dryRun"
         ? "?dryRun=true"
         : special == "getTotalPrice"

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Grid, Card, CardContent, CardHeader } from '@mui/material';
 import axios from 'axios';
+import { API_URL } from '../constants';
 
 function Comments({ articleId }) {
   const [comments, setComments] = useState([]);
@@ -8,7 +9,7 @@ function Comments({ articleId }) {
   const [size, setSize] = useState(10);
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/v1/public/articles/${articleId}/comments?page=${page}&size=${size}`)
+    axios.get(`${API_URL}/v1/public/articles/${articleId}/comments?page=${page}&size=${size}`)
       .then(response => setComments(response.data))
       .catch(error => console.error(error));
   }, [articleId, page, size]);
