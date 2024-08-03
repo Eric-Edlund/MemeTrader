@@ -7,24 +7,13 @@ import {
   Skeleton,
   ListItem,
   useTheme,
-  Card,
   Typography,
 } from "@mui/material";
-import { Line } from "react-chartjs-2";
 import "chartjs-adapter-date-fns";
-import {
-  Chart as ChartJS,
-  TimeScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-} from "chart.js";
 import React from "react";
 import { getPriceHistory, getStockMetadata, getStockPrice } from "../api";
 import { elevatedStyle } from "../styles";
 
-ChartJS.register(TimeScale, LinearScale, PointElement, LineElement, Tooltip);
 
 function StockListItem({ stockId }) {
   const [metadata, setMetadata] = useState({});
@@ -85,8 +74,8 @@ function StockListItem({ stockId }) {
 
   return (
     <ListItem sx={{ ...elevatedStyle(2)(theme), borderRadius: "0.5em" }}>
-        <Grid container spacing="2ch">
-          <Grid item xs={3} style={{ display: "flex" }}>
+        <Grid container>
+          <Grid item xs={'auto'} style={{ display: "flex" }}>
             <ListItemIcon>
               <Avatar
                 variant="rounded"
@@ -96,19 +85,8 @@ function StockListItem({ stockId }) {
             </ListItemIcon>
           </Grid>
 
-          <Grid item xs={6} justifyContent="center">
-            {history == null ? (
-              <Skeleton variant="rectangular" width="20ch" height="2em" />
-            ) : history == "nodata" ? (
-              <p>No data</p>
-            ) : (
-              <Line
-                width={"100%"}
-                height={"2em"}
-                options={OPTIONS}
-                data={history}
-              />
-            )}
+          <Grid item xs={true} justifyContent="center">
+            <Typography color={theme.palette.text.primary}>{metadata.title}</Typography>
           </Grid>
 
           <Grid item justifyContent="right" xs={3}>
@@ -129,35 +107,3 @@ function StockListItem({ stockId }) {
 }
 
 export default StockListItem;
-
-const OPTIONS = {
-  maintainAspectRatio: false,
-  scales: {
-    x: {
-      display: false,
-      drawOnChartArea: false,
-      ticks: {
-        display: false,
-      },
-      type: "time",
-      min: new Date(new Date().setDate(new Date().getDate() - 1)),
-      max: new Date(),
-      grid: {
-        display: false,
-      },
-      drawBorder: false,
-    },
-    y: {
-      display: false,
-      beginAtZero: true,
-      drawBorder: false,
-      suggestedMax: 100,
-      ticks: {
-        display: false,
-      },
-      grid: {
-        display: false,
-      },
-    },
-  },
-};
