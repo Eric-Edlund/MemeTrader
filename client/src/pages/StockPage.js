@@ -8,6 +8,8 @@ import {
   IconButton,
   Skeleton,
   useTheme,
+  Typography,
+  Card,
 } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 import React, { useContext } from "react";
@@ -25,7 +27,8 @@ export default function StockPage() {
   const [price, setPrice] = useState(null);
   const [reloadTrigger, triggerReload] = useReducer((a) => a + 1, 0);
 
-  const { authenticated, user } = useContext(ApplicationContext);
+  const { authenticated, user, setOnLoginPage } =
+    useContext(ApplicationContext);
 
   useEffect(() => {
     async function fetchData() {
@@ -34,6 +37,8 @@ export default function StockPage() {
     }
     fetchData();
   }, [reloadTrigger, stockId]);
+
+  const theme = useTheme()
 
   return (
     <Container>
@@ -59,7 +64,22 @@ export default function StockPage() {
               onTransaction={triggerReload}
             />
           ) : (
-            <Skeleton variant="rectangular" />
+            <Card
+              sx={{
+                width: "100%",
+                height: "20em",
+                direction: "column",
+                alignContent: "center",
+
+                transition: "background-color 0.2s",
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+              }}
+              onClick={() => setOnLoginPage(true)}
+            >
+              <Typography align="center">Login to order</Typography>
+            </Card>
           )}
         </Grid>
       </Grid>

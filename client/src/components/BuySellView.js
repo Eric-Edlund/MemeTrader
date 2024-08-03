@@ -69,6 +69,9 @@ async function sendOrder(orderData, special = "") {
   return await response.json();
 }
 
+/**
+ * Assumes the user is authenticated.
+ */
 export default function OrderForm({
   stockId,
   userId,
