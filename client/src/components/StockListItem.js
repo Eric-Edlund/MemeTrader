@@ -1,4 +1,3 @@
-import "./StockListItem.css";
 import { useEffect, useState } from "react";
 import {
   Avatar,
@@ -14,11 +13,11 @@ import React from "react";
 import { getPriceHistory, getStockMetadata, getStockPrice } from "../api";
 import { elevatedStyle } from "../styles";
 
-
 function StockListItem({ stockId }) {
   const [metadata, setMetadata] = useState({});
   const [price, setPrice] = useState(null);
   const [history, setHistory] = useState(null);
+  const [delta, setDelta] = useState(null); // Stock value in cents last 24hrs
 
   useEffect(() => {
     async function fetchMetadata() {
@@ -66,6 +65,7 @@ function StockListItem({ stockId }) {
           },
         ],
       });
+      setDelta(result.points[result.points.length - 1].y - result.points[0].y);
     }
     fetchHistory();
   }, []);
@@ -74,34 +74,45 @@ function StockListItem({ stockId }) {
 
   return (
     <ListItem sx={{ ...elevatedStyle(2)(theme), borderRadius: "0.5em" }}>
-        <Grid container>
-          <Grid item xs={'auto'} style={{ display: "flex" }}>
-            <ListItemIcon>
-              <Avatar
-                variant="rounded"
-                alt={metadata.title}
-                src={metadata.imageUrl}
-              />
-            </ListItemIcon>
-          </Grid>
+      <Grid container>
+        <Grid item xs={"auto"} style={{ display: "flex" }}>
+          <ListItemIcon>
+            <Avatar
+              variant="rounded"
+              alt={metadata.title}
+              src={metadata.imageUrl}
+            />
+          </ListItemIcon>
+        </Grid>
 
-          <Grid item xs={true} justifyContent="center">
-            <Typography color={theme.palette.text.primary}>{metadata.title}</Typography>
-          </Grid>
+        <Grid item xs={true} justifyContent="center">
+          <Typography color={theme.palette.text.primary}>
+            {metadata.title}
+          </Typography>
+        </Grid>
 
-          <Grid item justifyContent="right" xs={3}>
-            <Typography color={theme.palette.text.primary} textAlign="center">
-              {price != null ? (
-                (price / 100).toLocaleString("en-US", {
+        <Grid item justifyContent="right" xs={3}>
+          {price != null && delta != null ? (
+            <>
+              <Typography color={theme.palette.text.primary} textAlign="center">
+                {(price / 100).toLocaleString("en-US", {
                   style: "currency",
                   currency: "USD",
-                })
-              ) : (
-                <Skeleton variant="text" width={"3ch"} height={"1.2em"} />
-              )}
-            </Typography>
-          </Grid>
+                })}
+              </Typography>
+              <Typography color={delta >= 0 ? 'green' : 'red'} textAlign="center">
+                {delta >= 0 ? "+" : "-"}
+                {(delta / 100).toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                })}
+              </Typography>
+            </>
+          ) : (
+            <Skeleton variant="text" width={"3ch"} height={"1.2em"} />
+          )}
         </Grid>
+      </Grid>
     </ListItem>
   );
 }
