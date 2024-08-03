@@ -43,7 +43,7 @@ export default function StockPage() {
   return (
     <Container>
       <Grid container columnSpacing={1}>
-        <Grid item xs={9}>
+        <Grid item sm={9} xs={12}>
           <StockHeader metadata={metadata} price={price} />
           <LiveGraphView stockId={stockId} reloadTrigger={reloadTrigger} />
           <AboutSection metadata={metadata} />
@@ -51,9 +51,9 @@ export default function StockPage() {
 
         <Grid
           item
-          xs={3}
+          sm={3}
+          xs={12}
           paddingTop="2em"
-          style={{ position: "sticky", top: "0px" }}
         >
           {authenticated && metadata && price && user.userId ? (
             <OrderForm

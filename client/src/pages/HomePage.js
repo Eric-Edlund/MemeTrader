@@ -46,15 +46,15 @@ export default function HomePage() {
 
   return (
     <Container style={{ marginTop: "1em" }}>
-      <Grid container direction="row" columnSpacing="1em">
-        <Grid item justifyContent="center" xs={8}>
+      <Grid container columnSpacing="1em">
+        <Grid item justifyContent="center" xs={12} sm={8}>
           <PrimaryArticleThumbnail article={articles[0]} />
           <Divider />
           {articles.slice(1).map((article) => (
             <SecondaryArticleThumbnail key={article.id} article={article} />
           ))}
         </Grid>
-        <Grid item justifyContent="center" xs={4}>
+        <Grid item justifyContent="center" xs={12} sm={4}>
           <List className="StockList">
             <h1 style={{textAlign: 'center'}} className="glow">Hot Memes</h1>
             {stocks.map((id) => (
