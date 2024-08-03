@@ -11,15 +11,12 @@ import {
   Box,
 } from "@mui/material";
 import { BrowserRouter, Route, Routes, Link } from "react-router-dom";
-import React, {
-  useContext,
-  useMemo,
-} from "react";
+import React, { useContext, useMemo } from "react";
 import Search from "./components/Search";
 import ArticlePage from "./pages/ArticlePage";
 import HomePage from "./pages/HomePage";
 import { API_URL } from "./constants";
-import AccountPage from "./pages/AccountPage";
+import AccountPage from "./pages/PortfolioPage";
 import { ApplicationContext } from "./ApplicationContext";
 import { createTheme, ThemeProvider, useTheme } from "@mui/material/styles";
 import ThemeToggler from "./components/ThemeToggler";
@@ -31,7 +28,7 @@ function NavigationBar() {
   const theme = useTheme();
 
   return (
-    <AppBar position="sticky" sx={{zIndex: theme.zIndex.drawer + 1}}>
+    <AppBar position="sticky" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
       <Toolbar style={{ display: "flex" }}>
         <Link
           style={{ textDecoration: "none", color: "inherit" }}
@@ -40,13 +37,15 @@ function NavigationBar() {
         >
           <Typography marginX="1ch">Home</Typography>
         </Link>
-        <Link
-          style={{ textDecoration: "none", color: "inherit" }}
-          to="/account"
-          onPointerDown={(event) => event.target.click()}
-        >
-          <Typography marginX="1ch">Account</Typography>
-        </Link>
+        {authenticated ? (
+          <Link
+            style={{ textDecoration: "none", color: "inherit" }}
+            to="/account"
+            onPointerDown={(event) => event.target.click()}
+          >
+            <Typography marginX="1ch">Portfolio</Typography>
+          </Link>
+        ) : null}
 
         <div style={{ flexGrow: 3, maxWidth: "50%", margin: "auto" }}>
           <Search />
@@ -81,7 +80,8 @@ function NavigationBar() {
 }
 
 function App() {
-  const { darkMode, onLoginPage, connectedStatus } = useContext(ApplicationContext);
+  const { darkMode, onLoginPage, connectedStatus } =
+    useContext(ApplicationContext);
 
   const theme = useMemo(
     () =>
@@ -94,31 +94,31 @@ function App() {
   );
 
   return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
 
-        {onLoginPage ? (
-          <LoginPage />
-        ) : (
-          <BrowserRouter>
-            <Snackbar open={connectedStatus !== "connected"}>
-              <Alert severity="error" variant="filled">
-                Unable to connect to server.
-              </Alert>
-            </Snackbar>
+      {onLoginPage ? (
+        <LoginPage />
+      ) : (
+        <BrowserRouter>
+          <Snackbar open={connectedStatus !== "connected"}>
+            <Alert severity="error" variant="filled">
+              Unable to connect to server.
+            </Alert>
+          </Snackbar>
 
-            <NavigationBar />
-            <Box flex={1}>
-              <Routes>
-                <Route path="/" Component={HomePage} />
-                <Route path="/stock/:stockId" Component={StockPage} />
-                <Route path="/article/:articleId" Component={ArticlePage} />
-                <Route path="/account" Component={AccountPage} />
-              </Routes>
-            </Box>
-          </BrowserRouter>
-        )}
-      </ThemeProvider>
+          <NavigationBar />
+          <Box flex={1}>
+            <Routes>
+              <Route path="/" Component={HomePage} />
+              <Route path="/stock/:stockId" Component={StockPage} />
+              <Route path="/article/:articleId" Component={ArticlePage} />
+              <Route path="/account" Component={AccountPage} />
+            </Routes>
+          </Box>
+        </BrowserRouter>
+      )}
+    </ThemeProvider>
   );
 }
 
