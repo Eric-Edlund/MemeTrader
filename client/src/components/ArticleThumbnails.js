@@ -6,7 +6,6 @@ import {
   Typography,
   Grid,
   useTheme,
-  Box,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import React from "react";
@@ -28,7 +27,7 @@ export function PrimaryArticleThumbnail({ article }) {
         "&:hover": {
           backgroundColor: theme.palette.action.hover,
         },
-        marginBottom: '1em',
+        marginBottom: "1em",
       }}
       onMouseDown={() => navigate("/article/" + id, { state: { article } })}
     >
@@ -129,8 +128,10 @@ export function SecondaryArticleThumbnail({ article }) {
       >
         {article ? (
           <>
-            <Typography variant="h5" style={{display: 'inline'}}>{title + " "}</Typography>
-            <p style={{ fontSize: "0.8em", color: "#666", display: 'inline' }}>
+            <Typography variant="h5" style={{ display: "inline" }}>
+              {title + " "}
+            </Typography>
+            <p style={{ fontSize: "0.8em", color: "#666", display: "inline" }}>
               Published{" "}
               {new Date(published).toLocaleDateString() +
                 " " +
@@ -146,47 +147,51 @@ export function SecondaryArticleThumbnail({ article }) {
         )}
 
         <Grid container>
-          <Grid item xs={4}>
+          <Grid item sm={12} md={4}>
             {article ? (
+              <Container >
               <img
                 style={{
-                  height: "6em",
-                  margin: '1em',
+                  width: '100%',
+                  minHeight: "6em",
                   objectFit: "cover",
                   borderRadius: theme.shape.borderRadius,
                   boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
                 }}
                 src={imageUrl}
-              />
+              /></Container>
             ) : (
-                <Skeleton
-                  variant="rectangular"
-                  style={{
-                    width: "100%",
-                    height: "10em",
-                    aspectRatio: 16 / 9,
-                    marginBottom: "1em",
-                  }}
-                ></Skeleton>
-              )}
+              <Skeleton
+                variant="rectangular"
+                style={{
+                  width: "100%",
+                  height: "10em",
+                  aspectRatio: 16 / 9,
+                  marginBottom: "1em",
+                }}
+              ></Skeleton>
+            )}
           </Grid>
 
-          <Grid item xs={8}>
-            {article ? (
-              <Typography
-                fontFamily="serif"
-                style={{
-                  whiteSpace: "pre-wrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 5,
-                  WebkitBoxOrient: "vertical",
-                }}
-              >
-                {body}
-              </Typography>
-            ) : (
+          <Grid item sm={12} md={8}>
+            <Container>
+              {article ? (
+                <div style={{ width: "100%" }}>
+                  <Typography
+                    fontFamily="serif"
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 5,
+                      WebkitBoxOrient: "vertical",
+                    }}
+                  >
+                    {body}
+                  </Typography>
+                </div>
+              ) : (
                 <>
                   <Skeleton variant="text" width="100%" />
                   <Skeleton variant="text" width="100%" />
@@ -198,6 +203,7 @@ export function SecondaryArticleThumbnail({ article }) {
                   <Skeleton variant="text" width="60%" />
                 </>
               )}
+            </Container>
           </Grid>
         </Grid>
       </Container>
