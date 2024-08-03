@@ -55,7 +55,7 @@ export default function StockPage() {
           paddingTop="2em"
           style={{ position: "sticky", top: "0px" }}
         >
-          {metadata && price && user.userId ? (
+          {authenticated && metadata && price && user.userId ? (
             <OrderForm
               stockId={stockId}
               userId={user.userId}
