@@ -16,7 +16,7 @@ public class ContentGeneratorConfig {
     @Value("${IMAGE_STORE_PATH}")
     public String IMAGE_STORE_PATH;
 
-    public static String ARTICLE_SUB_PATH = "articles";
+    public String ARTICLE_SUB_PATH = "articles";
 
     @Value("${OPENAI_API_KEY}")
     public String OPENAI_API_KEY;

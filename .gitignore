@@ -10,3 +10,4 @@
 /.direnv/
 .env
 /images
+/server/contentgeneratorservice/target/

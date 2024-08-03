@@ -58,16 +58,18 @@ public class ChatGPTArticleGenerator {
         }
 
         final var stockData = getRecentData();
-        System.out.println(stockData);
+        System.out.println("Stock Data: " + stockData);
         String textResponse = generateArticle(stockData);
         final var components = extractTitleAndBody(textResponse);
 
-        System.out.println(components.get(0) + "\n" + components.get(1));
+        System.out.println("Generated Article Body: " + components.get(0) + "\n" + components.get(1));
 
         final var image = generateImage(components.get(0), components.get(1));
         final var uuid = UUID.randomUUID();
         try {
-            assert image != null;
+            if (image == null) {
+                throw new IOException();
+            }
             var path = Path.of(config.IMAGE_STORE_PATH, config.ARTICLE_SUB_PATH, uuid + ".png");
             Files.createDirectories(path.getParent());
             Files.write(path, image, StandardOpenOption.CREATE);
