@@ -67,10 +67,6 @@ function StockListItem({ stockId }) {
       });
 
       let yesterdayValue = result.points.find(pt => pt.x <= yesterday) ?? result.points[0]
-      console.log(result.points)
-      console.log(yesterdayValue)
-
-
 
       setDelta(result.points[result.points.length - 1].y - yesterdayValue.y);
     }

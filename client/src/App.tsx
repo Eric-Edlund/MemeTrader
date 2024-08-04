@@ -8,9 +8,16 @@ import {
   CssBaseline,
   Button,
   Box,
+  IconButton,
+  Avatar,
+  Menu,
+  MenuItem,
+  Container,
+  Grid,
+  ListItemIcon,
 } from "@mui/material";
 import { BrowserRouter, Route, Routes, Link } from "react-router-dom";
-import React, { useContext, useMemo } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import Search from "./components/Search";
 import ArticlePage from "./pages/ArticlePage";
 import HomePage from "./pages/HomePage";
@@ -20,9 +27,10 @@ import { ApplicationContext } from "./ApplicationContext";
 import { createTheme, ThemeProvider, useTheme } from "@mui/material/styles";
 import ThemeToggler from "./components/ThemeToggler";
 import LoginPage from "./pages/LoginPage";
+import { Logout } from "@mui/icons-material";
 
 function NavigationBar() {
-  const { user, authenticated, triggerRecheckLogin, setOnLoginPage } =
+  const { user, authenticated, setOnLoginPage } =
     useContext(ApplicationContext);
   const theme = useTheme();
 
@@ -50,31 +58,88 @@ function NavigationBar() {
           <Search />
         </div>
 
-        {authenticated ? (
-          <a
-            onPointerDownCapture={() => {
-              fetch(`${API_URL}/logout`, {
-                method: "POST",
-                credentials: "include",
-              })
-                .then((response) => console.log("Logged out: " + response.ok))
-                .catch((error) => console.error(error))
-                .finally(triggerRecheckLogin);
-            }}
-          >
-            {user.userName}
-          </a>
-        ) : (
+        {!authenticated ? (
           <>
-            <Button onPointerDown={setOnLoginPage}>
+            <Button onPointerDown={() => setOnLoginPage(true)}>
               <Typography color={theme.palette.common.white}>Log in</Typography>
             </Button>
+
+            <ThemeToggler lightButtonColor={null} darkButtonColor={null} />
+          </>
+        ) : (
+          <>
+            <AccountIcon />
           </>
         )}
-
-        <ThemeToggler />
       </Toolbar>
     </AppBar>
+  );
+}
+
+function AccountIcon() {
+  const { user, triggerRecheckLogin, darkMode, triggerThemeReload } =
+    useContext(ApplicationContext);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  return (
+    <>
+      <IconButton
+        onPointerDown={(e) => setAnchorEl(e.currentTarget)}
+        aria-controls={open ? "account-menu" : undefined}
+        aria-haspopup="true"
+        aria-expanded={open ? "true" : undefined}
+      >
+        <Avatar sx={{ width: 32, height: 32 }}>E</Avatar>
+      </IconButton>
+
+      <Menu
+        open={open}
+        anchorEl={anchorEl}
+        id="account-menu"
+        onClose={() => {
+          setAnchorEl(null);
+        }}
+        onClick={() => setAnchorEl(null)}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+      >
+        <MenuItem>
+          <Avatar>E</Avatar>
+          <Typography fontSize="large" sx={{ marginInlineStart: "1em" }}>
+            {user.userName}
+          </Typography>
+        </MenuItem>
+
+        <MenuItem
+          onMouseDown={() => {
+            fetch(`${API_URL}/logout`, {
+              method: "POST",
+              credentials: "include",
+            })
+              .then((response) => console.log("Logged out: " + response.ok))
+              .catch((error) => console.error(error))
+              .finally(triggerRecheckLogin);
+          }}
+        >
+          <ListItemIcon>
+            <Logout />
+          </ListItemIcon>
+          Logout
+        </MenuItem>
+        <MenuItem
+          onMouseDown={() => {
+            window.localStorage.setItem("theme", darkMode ? "light" : "dark");
+            triggerThemeReload();
+          }}
+        >
+          <ListItemIcon>
+            <ThemeToggler darkButtonColor="black" lightButtonColor="white" />
+          </ListItemIcon>
+          <Typography>{darkMode ? "Light Mode" : "Dark Mode"}</Typography>
+        </MenuItem>
+      </Menu>
+    </>
   );
 }
 
