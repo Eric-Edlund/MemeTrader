@@ -106,7 +106,6 @@ export default function OrderForm({
 
     //TODO: Fetch new price
     const totalPrice = await sendOrder(newFormData, "getTotalPrice");
-    console.log("total price: " + totalPrice);
     setTotalPrice(totalPrice);
 
     if (newFormData.numShares == 0) {
@@ -141,6 +140,7 @@ export default function OrderForm({
           borderRadius: "0.5em",
           backgroundColor: theme.palette.background.paper,
           padding: theme.spacing(2),
+          width: 'fit-content'
         }}
       >
         <Typography
@@ -149,7 +149,7 @@ export default function OrderForm({
             color: theme.palette.text.primary,
           }}
         >
-          {formData.operation == "BUY" ? "Buy" : "Sell"} {metadata.symbol}
+          Order Shares
         </Typography>
 
         <Divider />

@@ -41,15 +41,17 @@ export default function StockPage() {
   const theme = useTheme();
 
   return (
-    <Container>
-      <Grid container columnSpacing={1}>
-        <Grid item sm={9} xs={12}>
+    <Grid container columnSpacing={1}>
+      <Grid item sm={true} xs={12}>
+        <Container sx={{ marginRight: 0 }}>
           <StockHeader metadata={metadata} price={price} />
           <LiveGraphView stockId={stockId} reloadTrigger={reloadTrigger} />
           <AboutSection metadata={metadata} />
-        </Grid>
+        </Container>
+      </Grid>
 
-        <Grid item sm={3} xs={12} paddingTop="2em">
+      <Grid item sm={3} xs={12} paddingTop="2em">
+        <Container>
           {loadingAccountInfo ? null : authenticated &&
             metadata &&
             price &&
@@ -79,9 +81,9 @@ export default function StockPage() {
               <Typography align="center">Login to order</Typography>
             </Card>
           )}
-        </Grid>
+        </Container>
       </Grid>
-    </Container>
+    </Grid>
   );
 }
 
