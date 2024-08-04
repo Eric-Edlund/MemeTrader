@@ -27,7 +27,7 @@ export default function StockPage() {
   const [price, setPrice] = useState(null);
   const [reloadTrigger, triggerReload] = useReducer((a) => a + 1, 0);
 
-  const { authenticated, user, setOnLoginPage } =
+  const { authenticated, user, setOnLoginPage, loadingAccountInfo } =
     useContext(ApplicationContext);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function StockPage() {
     fetchData();
   }, [reloadTrigger, stockId]);
 
-  const theme = useTheme()
+  const theme = useTheme();
 
   return (
     <Container>
@@ -49,13 +49,11 @@ export default function StockPage() {
           <AboutSection metadata={metadata} />
         </Grid>
 
-        <Grid
-          item
-          sm={3}
-          xs={12}
-          paddingTop="2em"
-        >
-          {authenticated && metadata && price && user.userId ? (
+        <Grid item sm={3} xs={12} paddingTop="2em">
+          {loadingAccountInfo ? null : authenticated &&
+            metadata &&
+            price &&
+            user.userId ? (
             <OrderForm
               stockId={stockId}
               userId={user.userId}

@@ -9,7 +9,7 @@ import {
   Alert,
 } from "@mui/material";
 import React, { useContext } from "react";
-import { useState} from "react";
+import { useState } from "react";
 import { ApplicationContext } from "../ApplicationContext";
 import { API_URL } from "../constants";
 import SplitButton from "./SplitButton";
@@ -85,6 +85,7 @@ export default function OrderForm({
   const theme = useTheme();
 
   const { connectedStatus } = useContext(ApplicationContext);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [invalidInput, setInvalidInput] = useState(null); // null if ok, or string reason
   const [formData, setFormData] = useState({
@@ -103,17 +104,14 @@ export default function OrderForm({
     };
     setFormData(newFormData);
 
-
     //TODO: Fetch new price
     const totalPrice = await sendOrder(newFormData, "getTotalPrice");
     console.log("total price: " + totalPrice);
     setTotalPrice(totalPrice);
 
-
     if (newFormData.numShares == 0) {
       return;
     }
-
 
     const result = await sendOrder({ ...newFormData, totalPrice }, "dryRun");
     if (!result.success) {

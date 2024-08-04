@@ -12,8 +12,6 @@ import {
   Avatar,
   Menu,
   MenuItem,
-  Container,
-  Grid,
   ListItemIcon,
 } from "@mui/material";
 import { BrowserRouter, Route, Routes, Link } from "react-router-dom";
@@ -27,10 +25,10 @@ import { ApplicationContext } from "./ApplicationContext";
 import { createTheme, ThemeProvider, useTheme } from "@mui/material/styles";
 import ThemeToggler from "./components/ThemeToggler";
 import LoginPage from "./pages/LoginPage";
-import { Logout } from "@mui/icons-material";
+import { DarkMode, LightMode, Logout } from "@mui/icons-material";
 
 function NavigationBar() {
-  const { user, authenticated, setOnLoginPage } =
+  const { user, authenticated, loadingAccountInfo, setOnLoginPage } =
     useContext(ApplicationContext);
   const theme = useTheme();
 
@@ -58,7 +56,7 @@ function NavigationBar() {
           <Search />
         </div>
 
-        {!authenticated ? (
+        {loadingAccountInfo ? null : !authenticated ? (
           <>
             <Button onPointerDown={() => setOnLoginPage(true)}>
               <Typography color={theme.palette.common.white}>Log in</Typography>
@@ -133,9 +131,7 @@ function AccountIcon() {
             triggerThemeReload();
           }}
         >
-          <ListItemIcon>
-            <ThemeToggler darkButtonColor="black" lightButtonColor="white" />
-          </ListItemIcon>
+          <ListItemIcon>{darkMode ? <LightMode /> : <DarkMode />}</ListItemIcon>
           <Typography>{darkMode ? "Light Mode" : "Dark Mode"}</Typography>
         </MenuItem>
       </Menu>

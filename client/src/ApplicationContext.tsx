@@ -10,21 +10,22 @@ import {
 import { API_URL } from "./constants";
 
 const ApplicationContext = createContext<{
-  user?: object, 
-  balance?: number
-  holdings?: []
-  loading?: boolean
-  refresh?: () => void
-  triggerRefresh?: () => void
-  darkMode?: boolean
-  triggerThemeReload?: () => void
-  authenticated?: boolean
-  setAuthenticated?: (val: boolean) => void
-  triggerRecheckLogin?: () => void
-  onLoginPage?: boolean
-  setOnLoginPage?: (val: boolean) => void
-  connectedStatus?: string
-  setConnectedStatus?: (val: string) => void
+  user?: object;
+  balance?: number;
+  holdings?: [];
+  loading?: boolean;
+  refresh?: () => void;
+  triggerRefresh?: () => void;
+  darkMode?: boolean;
+  triggerThemeReload?: () => void;
+  authenticated?: boolean;
+  setAuthenticated?: (val: boolean) => void;
+  triggerRecheckLogin?: () => void;
+  onLoginPage?: boolean;
+  setOnLoginPage?: (val: boolean) => void;
+  connectedStatus?: string;
+  setConnectedStatus?: (val: string) => void;
+  loadingAccountInfo: boolean;
 }>({});
 
 const ApplicationStateProvider = ({ children }) => {
@@ -49,11 +50,13 @@ const ApplicationStateProvider = ({ children }) => {
     0,
   );
 
-  const [connectedStatus, setConnectedStatus] = useState("connected") // "disconnected"
-
+  const [connectedStatus, setConnectedStatus] = useState("connected"); // "disconnected"
 
   useEffect(() => {
-    if (!authenticated) return;
+    if (!authenticated) {
+      setLoadingAccountInfo(false);
+      return;
+    }
 
     const fetchUserData = async () => {
       try {
@@ -106,23 +109,21 @@ const ApplicationStateProvider = ({ children }) => {
         credentials: "include",
       });
 
-      loggedIn
-        .json()
-        .then((result) => {
-          setAuthenticated(true);
-          if (onLoginPage) {
-            setOnLoginPage(false);
-          }
-        })
-        .catch((rej) => {
-          setAuthenticated(false);
-        });
+      if (loggedIn.ok) {
+        setAuthenticated(true);
+        if (onLoginPage) {
+          setOnLoginPage(false);
+        }
+      } else {
+        setAuthenticated(false);
+      }
     }
     checkLogin();
   }, [recheckLogin]);
 
   return (
-    <ApplicationContext.Provider value={{
+    <ApplicationContext.Provider
+      value={{
         user,
         balance,
         holdings,
@@ -136,6 +137,7 @@ const ApplicationStateProvider = ({ children }) => {
         triggerRecheckLogin,
         onLoginPage,
         setOnLoginPage,
+        loadingAccountInfo,
 
         connectedStatus,
         setConnectedStatus,
