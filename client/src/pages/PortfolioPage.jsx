@@ -109,7 +109,7 @@ function HoldingsTable({ holdings }) {
   );
 }
 
-function AccountPage() {
+function PortfolioPage() {
   const { balance, holdings, loading } = useContext(ApplicationContext);
   const theme = useTheme();
 
@@ -340,7 +340,7 @@ function FinancialSummary({ balance, totalStockValue, holdings, data }) {
   );
 }
 
-export default AccountPage;
+export default PortfolioPage;
 
 const moneyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",

@@ -15,7 +15,7 @@ import Search from "./components/Search";
 import ArticlePage from "./pages/ArticlePage";
 import HomePage from "./pages/HomePage";
 import { API_URL } from "./constants";
-import AccountPage from "./pages/PortfolioPage";
+import PortfolioPage from "./pages/PortfolioPage";
 import { ApplicationContext } from "./ApplicationContext";
 import { createTheme, ThemeProvider, useTheme } from "@mui/material/styles";
 import ThemeToggler from "./components/ThemeToggler";
@@ -39,7 +39,7 @@ function NavigationBar() {
         {authenticated ? (
           <Link
             style={{ textDecoration: "none", color: "inherit" }}
-            to="/account"
+            to="/portfolio"
             onPointerDown={(event) => event.target.click()}
           >
             <Typography marginX="1ch">Portfolio</Typography>
@@ -112,7 +112,7 @@ function App() {
               <Route path="/" Component={HomePage} />
               <Route path="/stock/:stockId" Component={StockPage} />
               <Route path="/article/:articleId" Component={ArticlePage} />
-              <Route path="/account" Component={AccountPage} />
+              <Route path="/portfolio" Component={PortfolioPage} />
             </Routes>
           </Box>
         </BrowserRouter>
