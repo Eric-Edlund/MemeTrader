@@ -4,16 +4,13 @@ import com.memetrader.common.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
- * Handles the rest endpoint for publicly available information requiring no auth.
+ * Handles the rest endpoint for publicly available information requiring no
+ * auth.
  */
 @RestController
 @RequestMapping("/v1/public")
@@ -22,7 +19,6 @@ public class PublicStockController {
 
     private final MemeStockService stockService;
     private final MemeStockRepository memeStockRepository;
-    private static final Logger logger = Logger.getLogger(PublicStockController.class.getName());
 
     @Autowired
     public PublicStockController(MemeStockService stockService, MemeStockRepository memeStockRepository) {
@@ -50,8 +46,7 @@ public class PublicStockController {
     public ResponseEntity<StockHistoryV1> getStockHistory(
             @RequestParam("stockId") int stockId,
             @RequestParam(value = "startDate", required = false) String startDate,
-            @RequestParam(value = "endDate", required = false) String endDate
-    ) {
+            @RequestParam(value = "endDate", required = false) String endDate) {
         try {
             var start = OffsetDateTime.parse(startDate);
             var end = OffsetDateTime.parse(endDate);
@@ -83,37 +78,15 @@ public class PublicStockController {
 
     /**
      * Gets the most recent articles.
-     * @param num The maximum number of articles to return, starting from most recent.
+     * 
+     * @param num The maximum number of articles to return, starting from most
+     *            recent.
      * @return A list of recent articles.
      */
     @GetMapping("/articles")
     public ResponseEntity<List<StockArticle>> getArticles(@RequestParam("num") int num) {
         return ResponseEntity.ok(memeStockRepository.getArticles(num));
     }
-
-    @Autowired
-    private UserService userService;
-
-    /**
-     * Begins the user verification process.
-     * @param request
-     * @return
-     */
-    @PostMapping("/createUser")
-    public SseEmitter createUser(@RequestBody CreateUserRequest request) throws IOException {
-        SseEmitter emitter = new SseEmitter();
-        userService.beginVerifyingUser(request.userName(), request.email(), request.password(), emitter);
-        return emitter;
-    }
-
-    private record CreateUserResponse(boolean success) {};
-    private record CreateUserRequest(String email, String password, String userName) {};
-
-
-//    @GetMapping("/articles/{articleId}/comments")
-//    public ResponseEntity<List<Comment>> getArticleComments(@PathVariable Long articleId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-//        // TODO: Implement logic to query the database with pagination and return comments for the given articleId
-//    }
 
     @GetMapping("/searchStocks")
     public ResponseEntity<List<StockSearchResultV1>> searchStocks(@RequestParam("searchString") String searchString) {

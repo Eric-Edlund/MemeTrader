@@ -7,7 +7,6 @@ import java.security.Principal;
 @RestController
 public class LoginController {
 
-    //TODO: Remove?
     @RequestMapping("/user")
     public Principal user(Principal user) {
         return user;

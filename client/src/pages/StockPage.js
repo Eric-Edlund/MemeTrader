@@ -14,11 +14,11 @@ import {
 import InfoIcon from "@mui/icons-material/Info";
 import React, { useContext } from "react";
 import { useState, useEffect, useReducer } from "react";
-import { useParams } from "react-router-dom";
 import OrderForm from "../components/BuySellView";
 import LiveGraphView from "./../components/LiveGraph";
 import { getStockMetadata, getStockPrice } from "../api";
 import { ApplicationContext } from "../ApplicationContext";
+import { useNavigate, useParams } from "react-router";
 
 export default function StockPage() {
   const { stockId } = useParams();
@@ -27,8 +27,10 @@ export default function StockPage() {
   const [price, setPrice] = useState(null);
   const [reloadTrigger, triggerReload] = useReducer((a) => a + 1, 0);
 
-  const { authenticated, user, setOnLoginPage, loadingAccountInfo } =
+  const { authenticated, user, loadingAccountInfo } =
     useContext(ApplicationContext);
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     async function fetchData() {
@@ -76,7 +78,7 @@ export default function StockPage() {
                   backgroundColor: theme.palette.action.hover,
                 },
               }}
-              onClick={() => setOnLoginPage(true)}
+              onClick={() => navigate("/login")}
             >
               <Typography align="center">Login to order</Typography>
             </Card>

@@ -1,14 +1,20 @@
 package com.memetrader.webserver;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class UserService {
+
+    @Autowired
+    private MailService mailService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -16,35 +22,60 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    private record CreateUserResponse(boolean success, String msg) {};
+    public String createHash(@NonNull String password) {
+        return passwordEncoder.encode(password);
+    }
 
     /**
+     * Tries to verify the account. If successful, then initializes the account.
      *
-     * @param userName
-     * @param email
-     * @param password
-     * @return True if successfully registered.
+     * @returns true if the account is ready to use.
      */
-    public boolean beginVerifyingUser(String userName, String email, String password, SseEmitter emitter) throws IOException {
-
-// Send an initial event to the client to let them know we're verifying the email
-        emitter.send(SseEmitter.event().data(new CreateUserResponse(false, "Verifying email...")));
-
-        // Start the email verification process...
-        // ...
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+    public boolean verifyAccount(String attemptId, String code) {
+        var email = userRepository.verifyAccount(attemptId, code);
+        if (email != null) {
+            return false;
         }
 
-        // When the email verification process completes, send another event to the client
-        emitter.send(SseEmitter.event().data(new CreateUserResponse(true, "Email verified!")));
+        var user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            return false;
+        }
 
-//        String hashedPassword = passwordEncoder.encode(password);
-//        StockUser user = userRepository.saveVerified(userName, email, password);
+        var status = initializeAccount(user.get().getUserId());
+        if (!status) {
+            return false;
+        }
 
         return true;
     }
+
+    public boolean sendVerificationEmail(@NonNull String email, @NonNull String code) {
+        MimeMessage msg = mailService.createMimeMessage();
+        var helper = new MimeMessageHelper(msg);
+        try {
+            helper.setTo(email);
+            helper.setText("Your verification code is " + code);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        try {
+            mailService.send(msg);
+        } catch (MailException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param userId A valid user id.
+     */
+    public boolean initializeAccount(long userId) {
+        return userRepository.addFundsToAccount(userId, 500);
+    }
+
 }

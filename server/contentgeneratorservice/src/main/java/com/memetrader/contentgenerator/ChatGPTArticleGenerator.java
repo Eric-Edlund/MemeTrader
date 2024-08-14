@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -81,10 +81,15 @@ public class ChatGPTArticleGenerator {
         memeStockRepository.addArticle(components.get(0), components.get(1), uuid + ".png");
     }
 
+    /**
+     * @param articleTitle
+     * @param articleBody
+     * @return
+     */
     private byte[] generateImage(String articleTitle, String articleBody) {
         try {
             final String url = "https://api.openai.com/v1/images/generations";
-            final var conn = (HttpURLConnection) new URL(url).openConnection();
+            final var conn = (HttpURLConnection) URI.create(url).toURL().openConnection();
             conn.addRequestProperty("Content-Type", "application/json");
             conn.addRequestProperty("Accept", "application/json");
             conn.addRequestProperty("Authorization", "Bearer " + config.OPENAI_API_KEY);
@@ -127,7 +132,7 @@ public class ChatGPTArticleGenerator {
     private String generateArticle(String stockData) {
         try {
             final String url = "https://api.openai.com/v1/chat/completions";
-            final var conn = (HttpURLConnection) new URL(url).openConnection();
+            final var conn = (HttpURLConnection) URI.create(url).toURL().openConnection();
             conn.addRequestProperty("Content-Type", "application/json");
             conn.addRequestProperty("Accept", "application/json");
             conn.addRequestProperty("Authorization", "Bearer " + config.OPENAI_API_KEY);
@@ -185,7 +190,6 @@ public class ChatGPTArticleGenerator {
             final var yesterday = yesterdayHistory.isEmpty() ? 0 : yesterdayHistory.get(yesterdayHistory.size() - 1).price();
             final var today = todayHistory.isEmpty() ? 0 : todayHistory.get(todayHistory.size() - 1).price();
 
-            // TODO: Be selective about which stocks are interesting
             result.append(JsonStringEncoder.getInstance().quoteAsString(String.format("%s,%d,%d,%d", name, lastWeek, yesterday, today)));
         }
 

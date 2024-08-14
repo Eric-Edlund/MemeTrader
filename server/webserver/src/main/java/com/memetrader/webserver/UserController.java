@@ -105,12 +105,4 @@ public class UserController {
 
     private record UpdateBioResponse(String newBio) {};
     private record UpdateBioRequest(String newBio) {};
-
-
-//    @PostMapping("/articles/{articleId}/comments")
-//    public ResponseEntity<Comment> postArticleComment(@PathVariable Long articleId, @RequestBody Comment comment) {
-//        // TODO: Implement logic to save the comment to the database
-//    }
-
-
 }

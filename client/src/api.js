@@ -1,7 +1,5 @@
 import axios from "axios";
-import { useContext } from "react";
 import { API_URL } from "./constants";
-import { ApplicationContext } from "./ApplicationContext";
 
 /*
  * All api functions block until reconnection.
@@ -57,7 +55,7 @@ export async function getSearchResults(inputValue) {
   return await response.json();
 }
 
-export async function getUserInfo(userId) {
+export async function getUserInfo() {
   const response = await retrying(() =>
     fetch(`${API_URL}/v1/user`, {
       credentials: "include",

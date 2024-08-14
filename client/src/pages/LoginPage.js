@@ -1,18 +1,21 @@
 import {
   FormControl,
   FormLabel,
-  Grid,
   Button,
   TextField,
   Typography,
-  useTheme,
   Alert,
+  Divider,
+  Container,
 } from "@mui/material";
 import React, { useState } from "react";
 import { useContext } from "react";
 import { API_URL } from "../constants";
 import { elevatedStyle } from "../styles";
 import { ApplicationContext } from "../ApplicationContext";
+import { useNavigate } from "react-router";
+import { Link } from "react-router-dom";
+import { Google } from "@mui/icons-material";
 
 export default function LoginPage() {
   const { triggerRecheckLogin } = useContext(ApplicationContext);
@@ -20,6 +23,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [badCredentials, setBadCredentials] = useState(false);
+
+  const navigate = useNavigate();
 
   function handleSubmit() {
     fetch(`${API_URL}/v1/user`, {
@@ -29,37 +34,35 @@ export default function LoginPage() {
       },
       credentials: "include",
     }).then((response) => {
-      console.log(response.ok);
       if (response.ok) {
         triggerRecheckLogin();
+        navigate("/");
       } else setBadCredentials(true);
     });
   }
 
   return (
-    <Grid
-      container
-      direction="column"
-      alignItems="center"
-      justifyContent="center"
-      minHeight="100vh"
+    <Container
+      sx={{
+        alignContent: "center",
+        justifyItems: "center",
+        height: "100vh",
+      }}
     >
-      <Grid
-        item
-        xs={4}
+      <Container
         sx={(theme) => ({
           ...elevatedStyle(2)(theme),
           borderRadius: "0.5em",
           padding: "1em",
+          width: "fit-content",
         })}
       >
-        <Typography variant="h3">Login</Typography>
+        <Typography variant="h3">Sign In</Typography>
 
         {badCredentials ? (
           <Alert severity="error">The username or password is incorrect.</Alert>
         ) : null}
 
-        <br />
         <FormControl
           style={{
             display: "flex",
@@ -89,7 +92,21 @@ export default function LoginPage() {
             Login
           </Button>
         </FormControl>
-      </Grid>
-    </Grid>
+
+        <br />
+        <Divider aria-hidden="true">Or</Divider>
+        <br />
+
+        <div style={{ textAlign: "center" }}>
+          <Button variant="outlined" sx={{paddingLeft: 0}}>
+            <Google sx={{margin: '0.5em'}} />
+            Sign in with Google
+          </Button>
+          <br/>
+          <br/>
+          <Link to="/signup">Sign up</Link>
+        </div>
+      </Container>
+    </Container>
   );
 }

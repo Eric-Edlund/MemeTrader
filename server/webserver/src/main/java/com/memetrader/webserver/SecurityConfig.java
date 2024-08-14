@@ -25,8 +25,6 @@ import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.util.function.Supplier;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -55,6 +53,8 @@ public class SecurityConfig {
         .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/v1/public/**").permitAll()
                         .requestMatchers("/*.png").permitAll()
+                        .requestMatchers("/v1/user/createUser").permitAll()
+                        .requestMatchers("/v1/user/verifyUser").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(withDefaults())
@@ -96,19 +96,6 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    private static KeyPair generateRsaKey() {
-        KeyPair keyPair;
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
-            keyPair = keyPairGenerator.generateKeyPair();
-        }
-        catch (Exception ex) {
-            throw new IllegalStateException(ex);
-        }
-        return keyPair;
     }
 
     @Bean

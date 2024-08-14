@@ -141,7 +141,6 @@ public class MemeStockRepository {
             }
             return result;
         } catch (SQLException e) {
-            // TODO: LOG
             return new ArrayList<>();
         }
     }
@@ -671,8 +670,7 @@ public class MemeStockRepository {
 
                         final var time = resultSet.getTimestamp("time").toInstant().atOffset(ZoneOffset.UTC);
                         result.put(time, new BalanceHoldingsPair(
-                                lastBalance == null ? 0 : lastBalance, // TODO: I *think* that nullability is impossible
-                                                                       // for new data
+                                lastBalance == null ? 0 : lastBalance,
                                 lastHoldings.values().stream().toList()));
                     }
                 }

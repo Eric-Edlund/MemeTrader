@@ -11,3 +11,4 @@
 .env
 /images
 /server/contentgeneratorservice/target/
+*.classpath

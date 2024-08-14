@@ -76,7 +76,6 @@ public class MemeStockService {
      */
     public int placeOrder(int userId, int stockId, StockOrder stockOrder, long numShares, long totalPrice,
             boolean dryRun) throws StockOrderException {
-        // TODO: Do we need this check if the database checks ledger updates for us?
         if (stockOrder == StockOrder.Sell && !isSellOrderAllowed(userId, stockId, numShares)) {
             throw new StockOrderException(StockOrderException.Problem.InsufficientHoldings);
         }
@@ -130,7 +129,6 @@ public class MemeStockService {
      * @return The search results.
      */
     public List<StockSearchResultV1> searchStocks(String searchString, int numResults) {
-        // TODO: Cache this
         final var options = memeStockRepository.getAllMetadata();
         final Map<String, List<StockSearchResultV1>> map = new HashMap<>();
 

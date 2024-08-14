@@ -6,7 +6,6 @@ import {
   Typography,
   Alert,
   CssBaseline,
-  Button,
   Box,
   IconButton,
   Avatar,
@@ -26,9 +25,10 @@ import { createTheme, ThemeProvider, useTheme } from "@mui/material/styles";
 import ThemeToggler from "./components/ThemeToggler";
 import LoginPage from "./pages/LoginPage";
 import { DarkMode, LightMode, Logout } from "@mui/icons-material";
+import SignUpPage from "./pages/SignUpPage";
 
 function NavigationBar() {
-  const { user, authenticated, loadingAccountInfo, setOnLoginPage } =
+  const { authenticated, loadingAccountInfo } =
     useContext(ApplicationContext);
   const theme = useTheme();
 
@@ -38,7 +38,7 @@ function NavigationBar() {
         <Link
           style={{ textDecoration: "none", color: "inherit" }}
           to="/"
-          onPointerDown={(event) => event.target.click()}
+          onPointerDown={(event) => (event.target as HTMLElement).click()}
         >
           <Typography marginX="1ch">Home</Typography>
         </Link>
@@ -46,7 +46,7 @@ function NavigationBar() {
           <Link
             style={{ textDecoration: "none", color: "inherit" }}
             to="/portfolio"
-            onPointerDown={(event) => event.target.click()}
+            onPointerDown={(event) => (event.target as HTMLElement).click()}
           >
             <Typography marginX="1ch">Portfolio</Typography>
           </Link>
@@ -58,9 +58,12 @@ function NavigationBar() {
 
         {loadingAccountInfo ? null : !authenticated ? (
           <>
-            <Button onPointerDown={() => setOnLoginPage(true)}>
+            <Link
+              to="/login"
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
               <Typography color={theme.palette.common.white}>Log in</Typography>
-            </Button>
+            </Link>
 
             <ThemeToggler lightButtonColor={null} darkButtonColor={null} />
           </>
@@ -140,8 +143,7 @@ function AccountIcon() {
 }
 
 function App() {
-  const { darkMode, onLoginPage, connectedStatus } =
-    useContext(ApplicationContext);
+  const { darkMode, connectedStatus } = useContext(ApplicationContext);
 
   const theme = useMemo(
     () =>
@@ -153,31 +155,40 @@ function App() {
     [darkMode],
   );
 
+  function withNavBar(page: React.JSX.Element) {
+    return (
+      <>
+        <NavigationBar />
+        {page}
+      </>
+    );
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
 
-      {onLoginPage ? (
-        <LoginPage />
-      ) : (
-        <BrowserRouter>
-          <Snackbar open={connectedStatus !== "connected"}>
-            <Alert severity="error" variant="filled">
-              Unable to connect to server.
-            </Alert>
-          </Snackbar>
+      <BrowserRouter>
+        <Snackbar open={connectedStatus !== "connected"}>
+          <Alert severity="error" variant="filled">
+            Unable to connect to server.
+          </Alert>
+        </Snackbar>
 
-          <NavigationBar />
-          <Box flex={1}>
-            <Routes>
-              <Route path="/" Component={HomePage} />
-              <Route path="/stock/:stockId" Component={StockPage} />
-              <Route path="/article/:articleId" Component={ArticlePage} />
-              <Route path="/portfolio" Component={PortfolioPage} />
-            </Routes>
-          </Box>
-        </BrowserRouter>
-      )}
+        <Box flex={1}>
+          <Routes>
+            <Route path="/" element={withNavBar(<HomePage />)} />
+            <Route path="/stock/:stockId" element={withNavBar(<StockPage />)} />
+            <Route
+              path="/article/:articleId"
+              element={withNavBar(<ArticlePage />)}
+            />
+            <Route path="/portfolio" element={withNavBar(<PortfolioPage />)} />
+            <Route path="/login" Component={LoginPage} />
+            <Route path="/signup" Component={SignUpPage} />
+          </Routes>
+        </Box>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }

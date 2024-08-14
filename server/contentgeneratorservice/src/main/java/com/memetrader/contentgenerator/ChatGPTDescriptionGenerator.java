@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.logging.Level;
@@ -42,7 +42,7 @@ public class ChatGPTDescriptionGenerator {
             assert meme != null;
 
             try {
-                final var conn = (HttpURLConnection) new URL(url).openConnection();
+                final var conn = (HttpURLConnection) URI.create(url).toURL().openConnection();
                 conn.addRequestProperty("Content-Type", "application/json");
                 conn.addRequestProperty("Authorization", "Bearer " + System.getenv("OPENAI_API_KEY"));
                 conn.setRequestMethod("GET");

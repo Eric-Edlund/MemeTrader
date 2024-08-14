@@ -10,9 +10,9 @@ import {
 import { API_URL } from "./constants";
 
 const ApplicationContext = createContext<{
-  user?: object;
+  user?: any;
   balance?: number;
-  holdings?: [];
+  holdings?: any[];
   loading?: boolean;
   refresh?: () => void;
   triggerRefresh?: () => void;
@@ -21,15 +21,12 @@ const ApplicationContext = createContext<{
   authenticated?: boolean;
   setAuthenticated?: (val: boolean) => void;
   triggerRecheckLogin?: () => void;
-  onLoginPage?: boolean;
-  setOnLoginPage?: (val: boolean) => void;
   connectedStatus?: string;
   setConnectedStatus?: (val: string) => void;
-  loadingAccountInfo: boolean;
+  loadingAccountInfo?: boolean;
 }>({});
 
 const ApplicationStateProvider = ({ children }) => {
-  const [onLoginPage, setOnLoginPage] = useState(false);
   const [recheckLogin, triggerRecheckLogin] = useReducer((a) => a + 1, 0);
 
   const systemPrefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
@@ -111,9 +108,6 @@ const ApplicationStateProvider = ({ children }) => {
 
       if (loggedIn.ok) {
         setAuthenticated(true);
-        if (onLoginPage) {
-          setOnLoginPage(false);
-        }
       } else {
         setAuthenticated(false);
       }
@@ -135,8 +129,6 @@ const ApplicationStateProvider = ({ children }) => {
         authenticated,
         setAuthenticated,
         triggerRecheckLogin,
-        onLoginPage,
-        setOnLoginPage,
         loadingAccountInfo,
 
         connectedStatus,

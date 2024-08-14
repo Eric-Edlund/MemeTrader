@@ -4,11 +4,16 @@ import com.memetrader.common.StockUser;
 import com.zaxxer.hikari.HikariDataSource;
 import com.memetrader.common.DatabaseConfig;
 import com.memetrader.common.MemeStockRepository;
+
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Repository
@@ -24,8 +29,7 @@ public class UserRepository {
     public Optional<StockUser> findByEmail(String email) {
         try (final var conn = dataSource.getConnection()) {
             try (final var stmt = conn.prepareStatement(
-                    "SELECT id, password FROM Account WHERE email = ?"
-            )) {
+                    "SELECT id, password FROM Account WHERE email = ?")) {
                 stmt.setString(1, email);
 
                 try (final var resultSet = stmt.executeQuery()) {
@@ -34,8 +38,7 @@ public class UserRepository {
                                 resultSet.getInt("id"),
                                 email,
                                 resultSet.getString("password"),
-                                List.of()
-                        ));
+                                List.of()));
                     } else {
                         return Optional.empty();
                     }
@@ -47,19 +50,95 @@ public class UserRepository {
         }
     }
 
-    public boolean saveVerified(String userName, String email, String password) {
+    /**
+     * @param password Hashed
+     * @returns the id of the accoutn creation attempt, or null if there was an
+     *          error.
+     */
+    public @Nullable String saveUnverifiedAccount(@NonNull String email, @NonNull String password, @NonNull String code) {
+        final String uuid = UUID.randomUUID().toString();
         try (final var conn = dataSource.getConnection()) {
             try (final var stmt = conn.prepareStatement(
-                    "INSERT INTO Account (name, email, password) VALUES (?, ?, ?)"
-            )) {
-                stmt.setString(1, userName);
-                stmt.setString(2, email);
-                stmt.setString(3, password);
+                    "INSERT INTO AccountVerificationQueue (email, password, code, attemptId) VALUES (?, ?, ?, ?)")) {
+                stmt.setString(1, email);
+                stmt.setString(2, password);
+                stmt.setString(3, code);
+                stmt.setString(4, uuid);
+
+                stmt.execute();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            logger.log(Level.SEVERE, "SQL ERROR while saving unverified user to database.");
+            return null;
+        }
+
+        return uuid;
+    }
+
+    /**
+     * If a user creation attempt is found with the matching attemptId and code,
+     * the creation attempt is promoted to a full account.
+     * 
+     * @returns null if the attempt is not found or expired, email of verified account otherwise.
+     */
+    public String verifyAccount(@NonNull String attemptId, @NonNull String code) {
+        String email = null, password = null;
+
+        try (final var conn = dataSource.getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (final var stmt = conn.prepareStatement("SELECT email, password FROM AccountVerificationQueue WHERE attemptId = ?")) {
+                stmt.setString(1, attemptId);
+
+                try (final var resultSet = stmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        email = resultSet.getString("email");
+                        password = resultSet.getString("password");
+                    } else {
+                        return null;
+                    }
+                }
+            }
+
+            try (final var stmt = conn.prepareStatement(
+                    "DELETE FROM AccountVerificationQueue WHERE attemptId = ? AND code = ?")) {
+                stmt.setString(1, attemptId);
+                stmt.setString(2, code);
+
+                int count = stmt.executeUpdate();
+                if (count == 0) {
+                    return null;
+                }
+            }
+
+            try (final var stmt = conn.prepareStatement(
+                    "INSERT INTO Account (email, password) VALUES (?, ?)")) {
+                stmt.setString(1, email);
+                stmt.setString(2, password);
+
+                stmt.execute();
+            }
+
+            conn.commit();
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            return null;
+        }
+
+        return email;
+    }
+
+    public boolean addFundsToAccount(long userId, long amt) {
+        try (var conn = dataSource.getConnection()) {
+            try (var stmt = conn.prepareStatement("UPDATE AccountBalance WHERE userId = ? SET balance = balance + ?")) {
+                stmt.setLong(1, userId);
+                stmt.setLong(2, amt);
 
                 return stmt.execute();
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return false;
         }
     }
 }
