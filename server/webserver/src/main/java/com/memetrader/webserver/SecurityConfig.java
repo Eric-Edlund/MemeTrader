@@ -53,8 +53,8 @@ public class SecurityConfig {
         .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/v1/public/**").permitAll()
                         .requestMatchers("/*.png").permitAll()
-                        .requestMatchers("/v1/user/createUser").permitAll()
-                        .requestMatchers("/v1/user/verifyUser").permitAll()
+                        .requestMatchers("/v1/user/create").permitAll()
+                        .requestMatchers("/v1/user/verify").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(withDefaults())

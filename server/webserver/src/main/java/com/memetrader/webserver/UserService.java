@@ -27,8 +27,29 @@ public class UserService {
     }
 
     /**
+     * Creates an unverified account in the verification queue.
+     * 
+     * @param email Any string
+     * @param password Raw password
+     * @return The account creation attempt id or a creation error.
+     */
+    public Result<String, AccountCreationError> createAccount(String email, String password) {
+        var hash = passwordEncoder.encode(password);
+        var code = Integer.toString((int) (Math.random() * 10000));
+
+        var result = userRepository.saveUnverifiedAccount(email, hash, code);
+        if (result.isOk()) {
+            sendVerificationEmail(email, code);
+        }
+
+        return result;
+    }
+
+    /**
      * Tries to verify the account. If successful, then initializes the account.
      *
+     * @param attemptId A number generated when the account was attempted to 
+     * be created.
      * @returns true if the account is ready to use.
      */
     public boolean verifyAccount(String attemptId, String code) {
@@ -50,7 +71,7 @@ public class UserService {
         return true;
     }
 
-    public boolean sendVerificationEmail(@NonNull String email, @NonNull String code) {
+    private boolean sendVerificationEmail(@NonNull String email, @NonNull String code) {
         MimeMessage msg = mailService.createMimeMessage();
         var helper = new MimeMessageHelper(msg);
         try {
@@ -74,7 +95,7 @@ public class UserService {
     /**
      * @param userId A valid user id.
      */
-    public boolean initializeAccount(long userId) {
+    private boolean initializeAccount(long userId) {
         return userRepository.addFundsToAccount(userId, 500);
     }
 

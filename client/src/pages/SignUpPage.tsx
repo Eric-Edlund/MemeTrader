@@ -32,7 +32,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState(null);
   const [password, setPassword] = useState(null);
   const [verificationAttemptId, setVerificationAttemptId] = useState(null);
- 
+
   return (
     <SignupContext.Provider
       value={{
@@ -73,13 +73,13 @@ export default function SignUpPage() {
 
 function EmailVerifier() {
   const { email, verificationAttemptId } = useContext(SignupContext);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [error, setError] = useState(null);
   const [code, setCode] = useState("");
 
   async function handleSubmit() {
-    const response = await fetch(`${API_URL}/v1/user/verifyUser`, {
+    const response = await fetch(`${API_URL}/v1/user/verify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -92,10 +92,15 @@ function EmailVerifier() {
     });
 
     if (response.ok) {
-      setError(null)
-      navigate("/login")
+      setError(null);
+      navigate("/login");
     } else {
-      setError(response.text())
+      const code = await response.text();
+      if (code === "WRONG_CODE") {
+        setError("The code didn't match.");
+      } else {
+        setError("Server error. Try again later.");
+      }
     }
   }
 
@@ -132,13 +137,19 @@ function EmailVerifier() {
 }
 
 function AccountInfoCollector() {
-  const{ setPhase, email, password, setEmail, setPassword, setVerificationAttemptId } =
-    useContext(SignupContext);
+  const {
+    setPhase,
+    email,
+    password,
+    setEmail,
+    setPassword,
+    setVerificationAttemptId,
+  } = useContext(SignupContext);
 
   const [error, setError] = useState(null);
 
   async function handleSubmit() {
-    const response = await fetch(`${API_URL}/v1/user/createUser`, {
+    const response = await fetch(`${API_URL}/v1/user/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -150,10 +161,15 @@ function AccountInfoCollector() {
     });
 
     if (response.ok) {
-      setVerificationAttemptId(await response.text())
+      setVerificationAttemptId(await response.text());
       setPhase(Phase.VerifyEmail);
     } else {
-      setError(await response.text());
+      const code = await response.text();
+      if (code === "EMAIL_TAKEN") {
+        setError(code);
+      } else {
+        setError("Server error. Try again later.");
+      }
     }
   }
 

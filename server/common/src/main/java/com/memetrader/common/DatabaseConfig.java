@@ -9,7 +9,10 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,6 +28,9 @@ public class DatabaseConfig {
 
     Logger logger = Logger.getLogger(DatabaseConfig.class.getName());
 
+    @Autowired
+    ApplicationContext app;
+
     @PostConstruct
     public void init() throws IOException {
 
@@ -33,19 +39,19 @@ public class DatabaseConfig {
         if (DB_URL == null) {
             System.out.println("Must specify db.url");
             logger.log(Level.SEVERE, "Must specify db.url");
-            throw new RuntimeException("db url not specified.");
+            SpringApplication.exit(app, () -> 1);
         }
 
         if (!DB_URL.contains("sqlite")) {
             if (DB_USER == null) {
                 System.out.println("Must specify db.username");
                 logger.log(Level.SEVERE, "Must specify db.username");
-                throw new RuntimeException("db username not specified.");
+                SpringApplication.exit(app, () -> 1);
             }
             if (DB_PASS == null) {
                 System.out.println("Must specify db.password");
                 logger.log(Level.SEVERE, "Must specify db.password");
-                throw new RuntimeException("db password not specified.");
+                SpringApplication.exit(app, () -> 1);
             }
         }
     }

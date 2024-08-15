@@ -26,7 +26,7 @@ public class UserServiceTest {
 
     @Test
     public void testSendVerificationEmail() throws Error {
-        userService.sendVerificationEmail(EMAIL, CODE);
+        userService.createAccount(EMAIL, CODE);
 
         verify(mailService).send(any());
     }

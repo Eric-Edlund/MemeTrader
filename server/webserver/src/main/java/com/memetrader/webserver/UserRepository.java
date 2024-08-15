@@ -3,10 +3,8 @@ package com.memetrader.webserver;
 import com.memetrader.common.StockUser;
 import com.zaxxer.hikari.HikariDataSource;
 import com.memetrader.common.DatabaseConfig;
-import com.memetrader.common.MemeStockRepository;
 
 import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
@@ -24,7 +22,7 @@ public class UserRepository {
     }
 
     private final HikariDataSource dataSource;
-    private static Logger logger = Logger.getLogger(MemeStockRepository.class.getName());
+    private static Logger logger = Logger.getGlobal();
 
     public Optional<StockUser> findByEmail(String email) {
         try (final var conn = dataSource.getConnection()) {
@@ -51,11 +49,14 @@ public class UserRepository {
     }
 
     /**
+     * Creates an unverified account in the verification queue.
+     * 
      * @param password Hashed
-     * @returns the id of the accoutn creation attempt, or null if there was an
-     *          error.
+     * @return The account creation attempt id, or the error if something
+     *         went wrong.
      */
-    public @Nullable String saveUnverifiedAccount(@NonNull String email, @NonNull String password, @NonNull String code) {
+    public @NonNull Result<String, AccountCreationError> saveUnverifiedAccount(@NonNull String email,
+            @NonNull String password, @NonNull String code) {
         final String uuid = UUID.randomUUID().toString();
         try (final var conn = dataSource.getConnection()) {
             try (final var stmt = conn.prepareStatement(
@@ -69,18 +70,19 @@ public class UserRepository {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            logger.log(Level.SEVERE, "SQL ERROR while saving unverified user to database.");
-            return null;
+            logger.log(Level.SEVERE, "SQL ERROR while saving unverified user to database: " + e.getMessage());
+            return Result.err(AccountCreationError.Unknown);
         }
 
-        return uuid;
+        return Result.ok(uuid);
     }
 
     /**
      * If a user creation attempt is found with the matching attemptId and code,
      * the creation attempt is promoted to a full account.
      * 
-     * @returns null if the attempt is not found or expired, email of verified account otherwise.
+     * @returns null if the attempt is not found or expired, email of verified
+     *          account otherwise.
      */
     public String verifyAccount(@NonNull String attemptId, @NonNull String code) {
         String email = null, password = null;
@@ -88,7 +90,8 @@ public class UserRepository {
         try (final var conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
 
-            try (final var stmt = conn.prepareStatement("SELECT email, password FROM AccountVerificationQueue WHERE attemptId = ?")) {
+            try (final var stmt = conn
+                    .prepareStatement("SELECT email, password FROM AccountVerificationQueue WHERE attemptId = ?")) {
                 stmt.setString(1, attemptId);
 
                 try (final var resultSet = stmt.executeQuery()) {
