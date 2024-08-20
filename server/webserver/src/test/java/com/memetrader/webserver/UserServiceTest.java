@@ -2,6 +2,8 @@ package com.memetrader.webserver;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+
 import static org.mockito.Mockito.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,18 +18,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class UserServiceTest {
 
     @Autowired
-    MailService mailService;
+    KafkaAdapter mailService;
 
     @Autowired
     UserService userService;
 
     private static final String EMAIL = "joe@gmail.com";
-    private static final String CODE = "1234";
 
     @Test
     public void testSendVerificationEmail() throws Error {
-        userService.createAccount(EMAIL, CODE);
+        userService.createAccount(EMAIL, "password");
 
-        verify(mailService).send(any());
+        verify(mailService).enqueueVerifictionEmail(eq(EMAIL), Mockito.matches(
+            "\\d\\d\\d\\d"
+        ));
     }
 }

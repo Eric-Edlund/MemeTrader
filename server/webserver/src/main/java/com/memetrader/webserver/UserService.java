@@ -2,19 +2,14 @@ package com.memetrader.webserver;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class UserService {
 
     @Autowired
-    private MailService mailService;
+    private KafkaAdapter kafkaService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -28,6 +23,7 @@ public class UserService {
 
     /**
      * Creates an unverified account in the verification queue.
+     * Sends an email with verification code.
      * 
      * @param email Any string
      * @param password Raw password
@@ -39,7 +35,7 @@ public class UserService {
 
         var result = userRepository.saveUnverifiedAccount(email, hash, code);
         if (result.isOk()) {
-            sendVerificationEmail(email, code);
+            kafkaService.enqueueVerifictionEmail(email, code);
         }
 
         return result;
@@ -65,27 +61,6 @@ public class UserService {
 
         var status = initializeAccount(user.get().getUserId());
         if (!status) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean sendVerificationEmail(@NonNull String email, @NonNull String code) {
-        MimeMessage msg = mailService.createMimeMessage();
-        var helper = new MimeMessageHelper(msg);
-        try {
-            helper.setTo(email);
-            helper.setText("Your verification code is " + code);
-        } catch (MessagingException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        try {
-            mailService.send(msg);
-        } catch (MailException e) {
-            e.printStackTrace();
             return false;
         }
 
